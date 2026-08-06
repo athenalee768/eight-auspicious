@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>八吉祥音樂工作室 - 後台管理</title>
+<meta name="robots" content="noindex, nofollow">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --gold:#C9A84C;--gold-l:#E8CB7A;--gold-p:#F5E6B8;--gold-d:#8B6914;
+    --cream:#FAF6EE;--navy:#0B1F3A;--navy-m:#163354;--navy-l:#1E4470;
+    --ok:#8FD19E;--err:#E08A8A;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'微軟正黑體','Microsoft JhengHei','PingFang TC','Noto Sans TC',sans-serif;background:var(--navy);color:var(--cream);min-height:100vh}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-weight:300;letter-spacing:4px;color:var(--gold-l);font-size:26px;margin-bottom:4px}
+  .sub{color:var(--cream);opacity:.7;font-size:14px;margin-bottom:32px}
+
+  /* 登入畫面 */
+  #loginBox{max-width:380px;margin:80px auto;background:var(--navy-m);border:1px solid var(--gold);padding:40px 32px}
+  #loginBox h2{text-align:center;font-weight:300;letter-spacing:4px;color:var(--gold-l);margin-bottom:24px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;color:var(--gold-p);letter-spacing:1px;margin-bottom:6px}
+  .field input,.field textarea,.field select{width:100%;background:var(--navy);border:1px solid var(--gold-d);color:var(--cream);padding:10px 12px;font-size:15px;font-family:inherit}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--gold-l)}
+  .btn{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--navy);border:none;padding:11px 24px;font-size:15px;letter-spacing:2px;font-weight:600;cursor:pointer}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold-l);padding:8px 18px;font-size:14px;letter-spacing:1px;cursor:pointer}
+  .msg{margin-top:14px;font-size:14px;text-align:center}
+  .msg.ok{color:var(--ok)}.msg.err{color:var(--err)}
+
+  /* 主畫面 */
+  #app{display:none}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+  .tabs{display:flex;gap:8px;margin-bottom:24px;border-bottom:1px solid var(--navy-l)}
+  .tab{padding:10px 20px;cursor:pointer;color:var(--cream);opacity:.6;letter-spacing:2px;font-size:15px;border-bottom:2px solid transparent}
+  .tab.active{opacity:1;color:var(--gold-l);border-bottom-color:var(--gold)}
+  .panel{display:none}
+  .panel.active{display:block}
+
+  .card{background:var(--navy-m);border:1px solid var(--navy-l);padding:20px;margin-bottom:14px}
+  .card-key{font-size:13px;color:var(--gold-p);letter-spacing:1px;margin-bottom:8px}
+  .card textarea{min-height:70px}
+  .card-actions{display:flex;justify-content:flex-end;margin-top:10px}
+
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--navy-l)}
+  th{color:var(--gold-p);font-weight:400;letter-spacing:1px;font-size:13px}
+  tr:hover{background:var(--navy-m)}
+  select.status{background:var(--navy);color:var(--cream);border:1px solid var(--gold-d);padding:4px 8px;font-size:13px}
+  .empty{opacity:.6;padding:24px 0;text-align:center}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .add-field{display:flex;gap:10px;margin-bottom:20px}
+  .add-field input{flex:1}
+
+  /* 相片管理 */
+  .sub-h{font-size:15px;letter-spacing:2px;color:var(--gold-l);margin:28px 0 12px;font-weight:400}
+  .sub-h:first-child{margin-top:0}
+  .photo-card{background:var(--navy-m);border:1px solid var(--navy-l);padding:16px;margin-bottom:14px;display:flex;gap:16px;align-items:flex-start}
+  .photo-card img{width:120px;height:80px;object-fit:cover;border:1px solid var(--gold-d);flex-shrink:0}
+  .photo-card-body{flex:1;min-width:0}
+  .photo-card-key{font-size:13px;color:var(--gold-p);letter-spacing:1px;margin-bottom:8px}
+  .photo-card-actions{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .photo-card input[type=text]{width:100%;margin-bottom:8px}
+  .add-photo-box{background:var(--navy-m);border:1px dashed var(--gold-d);padding:18px;margin-bottom:22px}
+  .add-photo-box .field{margin-bottom:12px}
+  .btn-small{background:transparent;border:1px solid var(--navy-l);color:var(--cream);padding:6px 12px;font-size:13px;cursor:pointer}
+  .btn-small:hover{border-color:var(--gold)}
+  .btn-danger{border-color:var(--err);color:var(--err)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- 登入畫面 -->
+  <div id="loginBox">
+    <h2>後台登入</h2>
+    <div class="field">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail">
+    </div>
+    <div class="field">
+      <label for="loginPass">密碼</label>
+      <input type="password" id="loginPass">
+    </div>
+    <button class="btn" id="loginBtn" style="width:100%">登 入</button>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+
+  <!-- 主畫面 -->
+  <div id="app">
+    <div class="topbar">
+      <div>
+        <h1>八吉祥音樂工作室 · 後台管理</h1>
+        <div class="sub" id="userEmail"></div>
+      </div>
+      <button class="btn-outline" id="logoutBtn">登出</button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="content">內容編輯</div>
+      <div class="tab" data-tab="regs">報名管理</div>
+      <div class="tab" data-tab="photos">相片管理</div>
+    </div>
+
+    <!-- 內容編輯 -->
+    <div class="panel active" id="panel-content">
+      <div class="add-field">
+        <input type="text" id="newKey" placeholder="新欄位名稱，例如 announcement">
+        <button class="btn-outline" id="addKeyBtn">新增欄位</button>
+      </div>
+      <div id="contentList"></div>
+    </div>
+
+    <!-- 報名管理 -->
+    <div class="panel" id="panel-regs">
+      <div class="toolbar">
+        <span id="regCount" class="sub"></span>
+        <button class="btn-outline" id="exportBtn">匯出 CSV</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="regsTable">
+          <thead>
+            <tr><th>時間</th><th>姓名</th><th>電話</th><th>Email</th><th>課程/活動</th><th>留言</th><th>狀態</th></tr>
+          </thead>
+          <tbody id="regsBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="regsEmpty" style="display:none">目前沒有報名資料</div>
+    </div>
+
+    <!-- 相片管理 -->
+    <div class="panel" id="panel-photos">
+      <div class="sub-h">特定圖片</div>
+      <div class="sub" style="margin-bottom:16px">更換網站上指定位置的圖片（例如活動主圖）。</div>
+      <div id="specificPhotoList"></div>
+
+      <div class="sub-h">課程 相片</div>
+      <div class="sub" style="margin-bottom:16px">在這裡新增的照片，會顯示在網站「課程方案」區塊裡。</div>
+      <div class="add-photo-box">
+        <div class="field">
+          <label for="newGalleryCaption-course">照片說明文字（選填）</label>
+          <input type="text" id="newGalleryCaption-course" placeholder="例如：頌缽課程實況">
+        </div>
+        <div class="field">
+          <label for="newGalleryFile-course">選擇照片</label>
+          <input type="file" id="newGalleryFile-course" accept="image/*">
+        </div>
+        <button class="btn" id="addGalleryBtn-course">上傳並新增</button>
+        <span class="msg" id="galleryAddMsg-course" style="margin-left:12px"></span>
+      </div>
+      <div id="galleryPhotoList-course"></div>
+
+      <div class="sub-h">師資 相片</div>
+      <div class="sub" style="margin-bottom:16px">在這裡新增的照片，會顯示在網站「師資介紹」區塊裡。</div>
+      <div class="add-photo-box">
+        <div class="field">
+          <label for="newGalleryCaption-teacher">照片說明文字（選填）</label>
+          <input type="text" id="newGalleryCaption-teacher" placeholder="例如：師資團隊合照">
+        </div>
+        <div class="field">
+          <label for="newGalleryFile-teacher">選擇照片</label>
+          <input type="file" id="newGalleryFile-teacher" accept="image/*">
+        </div>
+        <button class="btn" id="addGalleryBtn-teacher">上傳並新增</button>
+        <span class="msg" id="galleryAddMsg-teacher" style="margin-left:12px"></span>
+      </div>
+      <div id="galleryPhotoList-teacher"></div>
+
+      <div class="sub-h">活動花絮 相片</div>
+      <div class="sub" style="margin-bottom:16px">在這裡新增的照片，會顯示在網站「活動花絮」區塊裡。</div>
+      <div class="add-photo-box">
+        <div class="field">
+          <label for="newGalleryCaption-highlight">照片說明文字（選填）</label>
+          <input type="text" id="newGalleryCaption-highlight" placeholder="例如：頌缽療癒示範">
+        </div>
+        <div class="field">
+          <label for="newGalleryFile-highlight">選擇照片</label>
+          <input type="file" id="newGalleryFile-highlight" accept="image/*">
+        </div>
+        <button class="btn" id="addGalleryBtn-highlight">上傳並新增</button>
+        <span class="msg" id="galleryAddMsg-highlight" style="margin-left:12px"></span>
+      </div>
+      <div id="galleryPhotoList-highlight"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var SUPABASE_URL = 'https://vmwwmowgijcskcrajmzg.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtd3dtb3dnaWpjc2tjcmFqbXpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MDA5MTgsImV4cCI6MjEwMDM3NjkxOH0.3P7WTw0q--T02U73AYktaZBuRC-QWR0rmGHdcR0ahTM';
+  var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  var loginBox = document.getElementById('loginBox');
+  var app = document.getElementById('app');
+  var loginMsg = document.getElementById('loginMsg');
+
+  // ---- 登入 / 登出 ----
+  document.getElementById('loginBtn').addEventListener('click', async function(){
+    var email = document.getElementById('loginEmail').value.trim();
+    var pass = document.getElementById('loginPass').value;
+    var btn = this;
+    btn.disabled = true;
+    loginMsg.textContent = '';
+    loginMsg.className = 'msg';
+
+    var result = await sb.auth.signInWithPassword({ email: email, password: pass });
+    btn.disabled = false;
+
+    if (result.error) {
+      loginMsg.textContent = '登入失敗，請確認帳號密碼';
+      loginMsg.classList.add('err');
+    } else {
+      enterApp(result.data.user);
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async function(){
+    await sb.auth.signOut();
+    location.reload();
+  });
+
+  async function checkSession(){
+    var { data } = await sb.auth.getSession();
+    if (data && data.session) {
+      enterApp(data.session.user);
+    }
+  }
+
+  function enterApp(user){
+    loginBox.style.display = 'none';
+    app.style.display = 'block';
+    document.getElementById('userEmail').textContent = user.email;
+    loadContent();
+    loadRegs();
+    loadPhotos();
+  }
+
+  // ---- Tabs ----
+  document.querySelectorAll('.tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---- 內容編輯 ----
+  async function loadContent(){
+    var list = document.getElementById('contentList');
+    list.innerHTML = '載入中...';
+    var result = await sb.from('site_content').select('key,value').order('key');
+    if (result.error) { list.innerHTML = '載入失敗：' + result.error.message; return; }
+    list.innerHTML = '';
+    result.data.forEach(function(row){
+      list.appendChild(renderContentCard(row.key, row.value));
+    });
+  }
+
+  function renderContentCard(key, value){
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      '<div class="card-key">' + key + '</div>' +
+      '<textarea>' + (value || '').replace(/</g,'&lt;') + '</textarea>' +
+      '<div class="card-actions"><span class="msg" style="margin-right:12px"></span><button class="btn">儲存</button></div>';
+    var textarea = card.querySelector('textarea');
+    var msg = card.querySelector('.msg');
+    var btn = card.querySelector('.btn');
+    btn.addEventListener('click', async function(){
+      btn.disabled = true;
+      var result = await sb.from('site_content')
+        .update({ value: textarea.value, updated_at: new Date().toISOString() })
+        .eq('key', key);
+      btn.disabled = false;
+      if (result.error) {
+        msg.textContent = '儲存失敗'; msg.className = 'msg err';
+      } else {
+        msg.textContent = '已儲存'; msg.className = 'msg ok';
+        setTimeout(function(){ msg.textContent=''; }, 2000);
+      }
+    });
+    return card;
+  }
+
+  document.getElementById('addKeyBtn').addEventListener('click', async function(){
+    var input = document.getElementById('newKey');
+    var key = input.value.trim();
+    if (!key) return;
+    var result = await sb.from('site_content').insert([{ key: key, value: '' }]);
+    if (!result.error) {
+      input.value = '';
+      loadContent();
+    } else {
+      alert('新增失敗：' + result.error.message);
+    }
+  });
+
+  // ---- 相片管理 ----
+  var STORAGE_BUCKET = 'site-images';
+
+  // 可在此新增更多「特定圖片」欄位：key 對應網站上 data-cms-img="key" 的圖片，label 是後台顯示名稱
+  var SPECIFIC_IMAGE_KEYS = [
+    { key: 'event_main_image', label: '活動主圖（公益音樂下午茶 · 香巴拉傳奇 活動頁主圖）' },
+    { key: 'event_secondary_image', label: '公益活動第二張圖片（活動介紹旁的圖）' }
+  ];
+
+  function loadPhotos(){
+    loadSpecificPhotos();
+    loadGalleryPhotos();
+  }
+
+  async function uploadImageFile(file, folder){
+    var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    var path = folder + '/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + ext;
+    var result = await sb.storage.from(STORAGE_BUCKET).upload(path, file);
+    if (result.error) throw result.error;
+    var pub = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    return pub.data.publicUrl;
+  }
+
+  // -- 特定圖片 --
+  async function loadSpecificPhotos(){
+    var list = document.getElementById('specificPhotoList');
+    list.innerHTML = '載入中...';
+    var result = await sb.from('site_content').select('key,value').in(
+      'key', SPECIFIC_IMAGE_KEYS.map(function(k){ return k.key; })
+    );
+    var values = {};
+    if (!result.error && result.data) {
+      result.data.forEach(function(row){ values[row.key] = row.value; });
+    }
+    list.innerHTML = '';
+    SPECIFIC_IMAGE_KEYS.forEach(function(item){
+      list.appendChild(renderSpecificPhotoCard(item.key, item.label, values[item.key] || ''));
+    });
+  }
+
+  function renderSpecificPhotoCard(key, label, url){
+    var card = document.createElement('div');
+    card.className = 'photo-card';
+    card.innerHTML =
+      '<img src="' + (url || '') + '" style="' + (url ? '' : 'background:var(--navy);') + '" onerror="this.style.opacity=0.2">' +
+      '<div class="photo-card-body">' +
+        '<div class="photo-card-key">' + label + '</div>' +
+        '<input type="file" accept="image/*">' +
+        '<div class="photo-card-actions">' +
+          '<button class="btn-small">上傳並更換</button>' +
+          '<span class="msg"></span>' +
+        '</div>' +
+      '</div>';
+    var fileInput = card.querySelector('input[type=file]');
+    var btn = card.querySelector('.btn-small');
+    var msg = card.querySelector('.msg');
+    var img = card.querySelector('img');
+    btn.addEventListener('click', async function(){
+      var file = fileInput.files[0];
+      if (!file) { msg.textContent = '請先選擇檔案'; msg.className = 'msg err'; return; }
+      btn.disabled = true;
+      msg.textContent = '上傳中...'; msg.className = 'msg';
+      try {
+        var url = await uploadImageFile(file, 'specific');
+        var upsertResult = await sb.from('site_content')
+          .upsert({ key: key, value: url, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+        if (upsertResult.error) throw upsertResult.error;
+        img.src = url;
+        msg.textContent = '已更換'; msg.className = 'msg ok';
+        setTimeout(function(){ msg.textContent=''; }, 2000);
+      } catch(e) {
+        msg.textContent = '失敗：' + (e.message || e); msg.className = 'msg err';
+      }
+      btn.disabled = false;
+    });
+    return card;
+  }
+
+  // -- 分類圖集：課程 / 師資 / 活動花絮 --
+  var GALLERY_CATEGORIES = ['course', 'teacher', 'highlight'];
+  var galleryCache = { course: [], teacher: [], highlight: [] };
+
+  function loadGalleryPhotos(){
+    GALLERY_CATEGORIES.forEach(function(cat){ loadGalleryPhotosFor(cat); });
+  }
+
+  async function loadGalleryPhotosFor(category){
+    var list = document.getElementById('galleryPhotoList-' + category);
+    list.innerHTML = '載入中...';
+    var result = await sb.from('gallery_images').select('*').eq('category', category).order('sort_order', { ascending: true });
+    if (result.error) { list.innerHTML = '載入失敗：' + result.error.message; return; }
+    galleryCache[category] = result.data || [];
+    list.innerHTML = '';
+    if (!galleryCache[category].length) {
+      list.innerHTML = '<div class="empty">尚未新增任何照片</div>';
+      return;
+    }
+    galleryCache[category].forEach(function(row, idx){
+      list.appendChild(renderGalleryCard(row, idx, category));
+    });
+  }
+
+  function renderGalleryCard(row, idx, category){
+    var cache = galleryCache[category];
+    var card = document.createElement('div');
+    card.className = 'photo-card';
+    card.innerHTML =
+      '<img src="' + row.url + '">' +
+      '<div class="photo-card-body">' +
+        '<div class="photo-card-key">照片說明</div>' +
+        '<input type="text" value="' + (row.caption || '').replace(/"/g,'&quot;') + '" placeholder="照片說明文字">' +
+        '<div class="photo-card-actions">' +
+          '<button class="btn-small save">儲存說明</button>' +
+          '<button class="btn-small up"' + (idx === 0 ? ' disabled' : '') + '>上移</button>' +
+          '<button class="btn-small down"' + (idx === cache.length - 1 ? ' disabled' : '') + '>下移</button>' +
+          '<button class="btn-small btn-danger del">刪除</button>' +
+          '<span class="msg"></span>' +
+        '</div>' +
+      '</div>';
+    var captionInput = card.querySelector('input[type=text]');
+    var msg = card.querySelector('.msg');
+
+    card.querySelector('.save').addEventListener('click', async function(){
+      var result = await sb.from('gallery_images').update({ caption: captionInput.value }).eq('id', row.id);
+      msg.textContent = result.error ? '儲存失敗' : '已儲存';
+      msg.className = result.error ? 'msg err' : 'msg ok';
+      setTimeout(function(){ msg.textContent=''; }, 2000);
+    });
+
+    card.querySelector('.del').addEventListener('click', async function(){
+      if (!confirm('確定要刪除這張照片嗎？')) return;
+      var result = await sb.from('gallery_images').delete().eq('id', row.id);
+      if (result.error) { alert('刪除失敗：' + result.error.message); return; }
+      loadGalleryPhotosFor(category);
+    });
+
+    var upBtn = card.querySelector('.up');
+    var downBtn = card.querySelector('.down');
+    if (!upBtn.disabled) {
+      upBtn.addEventListener('click', function(){ swapGalleryOrder(idx, idx - 1, category); });
+    }
+    if (!downBtn.disabled) {
+      downBtn.addEventListener('click', function(){ swapGalleryOrder(idx, idx + 1, category); });
+    }
+    return card;
+  }
+
+  async function swapGalleryOrder(a, b, category){
+    var cache = galleryCache[category];
+    var rowA = cache[a], rowB = cache[b];
+    await sb.from('gallery_images').update({ sort_order: rowB.sort_order }).eq('id', rowA.id);
+    await sb.from('gallery_images').update({ sort_order: rowA.sort_order }).eq('id', rowB.id);
+    loadGalleryPhotosFor(category);
+  }
+
+  GALLERY_CATEGORIES.forEach(function(category){
+    document.getElementById('addGalleryBtn-' + category).addEventListener('click', async function(){
+      var fileInput = document.getElementById('newGalleryFile-' + category);
+      var captionInput = document.getElementById('newGalleryCaption-' + category);
+      var msg = document.getElementById('galleryAddMsg-' + category);
+      var file = fileInput.files[0];
+      if (!file) { msg.textContent = '請先選擇照片'; msg.className = 'msg err'; return; }
+      var btn = this;
+      btn.disabled = true;
+      msg.textContent = '上傳中...'; msg.className = 'msg';
+      try {
+        var url = await uploadImageFile(file, 'gallery-' + category);
+        var cache = galleryCache[category];
+        var nextOrder = cache.length
+          ? Math.max.apply(null, cache.map(function(r){ return r.sort_order; })) + 1
+          : 0;
+        var insertResult = await sb.from('gallery_images').insert([{
+          url: url, caption: captionInput.value.trim(), category: category, sort_order: nextOrder
+        }]);
+        if (insertResult.error) throw insertResult.error;
+        fileInput.value = '';
+        captionInput.value = '';
+        msg.textContent = '已新增'; msg.className = 'msg ok';
+        setTimeout(function(){ msg.textContent=''; }, 2000);
+        loadGalleryPhotosFor(category);
+      } catch(e) {
+        msg.textContent = '失敗：' + (e.message || e); msg.className = 'msg err';
+      }
+      btn.disabled = false;
+    });
+  });
+
+  // ---- 報名管理 ----
+  var regsCache = [];
+
+  async function loadRegs(){
+    var body = document.getElementById('regsBody');
+    var empty = document.getElementById('regsEmpty');
+    body.innerHTML = '';
+    var result = await sb.from('registrations').select('*').order('created_at', { ascending: false });
+    if (result.error) { empty.style.display = 'block'; empty.textContent = '載入失敗：' + result.error.message; return; }
+    regsCache = result.data || [];
+    document.getElementById('regCount').textContent = '共 ' + regsCache.length + ' 筆';
+    empty.style.display = regsCache.length ? 'none' : 'block';
+    regsCache.forEach(function(r){
+      var tr = document.createElement('tr');
+      var date = new Date(r.created_at).toLocaleString('zh-TW');
+      tr.innerHTML =
+        '<td>' + date + '</td>' +
+        '<td>' + escapeHtml(r.name) + '</td>' +
+        '<td>' + escapeHtml(r.phone) + '</td>' +
+        '<td>' + escapeHtml(r.email) + '</td>' +
+        '<td>' + escapeHtml(r.course) + '</td>' +
+        '<td>' + escapeHtml(r.message) + '</td>' +
+        '<td></td>';
+      var statusTd = tr.lastElementChild;
+      var select = document.createElement('select');
+      select.className = 'status';
+      ['new','confirmed','cancelled'].forEach(function(s){
+        var opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s === 'new' ? '新報名' : (s === 'confirmed' ? '已確認' : '已取消');
+        if (r.status === s) opt.selected = true;
+        select.appendChild(opt);
+      });
+      select.addEventListener('change', async function(){
+        await sb.from('registrations').update({ status: select.value }).eq('id', r.id);
+      });
+      statusTd.appendChild(select);
+      body.appendChild(tr);
+    });
+  }
+
+  function escapeHtml(s){
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  document.getElementById('exportBtn').addEventListener('click', function(){
+    if (!regsCache.length) { alert('沒有資料可匯出'); return; }
+    var header = ['時間','姓名','電話','Email','課程/活動','留言','狀態'];
+    var rows = regsCache.map(function(r){
+      return [
+        new Date(r.created_at).toLocaleString('zh-TW'),
+        r.name, r.phone, r.email, r.course, r.message, r.status
+      ].map(function(v){ return '"' + String(v||'').replace(/"/g,'""') + '"'; }).join(',');
+    });
+    var csv = '\uFEFF' + header.join(',') + '\n' + rows.join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = '報名名單_' + new Date().toISOString().slice(0,10) + '.csv';
+    link.click();
+  });
+
+  checkSession();
+})();
+</script>
+</body>
+</html>

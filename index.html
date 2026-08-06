@@ -2994,6 +2994,40 @@ p, li { font-size: 26px !important; }
   .sub-menu { display: none; }
 }
 </style>
+
+<style>
+/* ===== Supabase-driven additions: price badge + registration form ===== */
+.modal-price-badge{
+  display:inline-block;margin-top:10px;padding:6px 18px;
+  border:1px solid var(--gold);border-radius:2px;
+  color:var(--gold-l);font-family:'Noto Serif TC',serif;
+  font-size:15px;letter-spacing:1px;background:rgba(201,168,76,.08);
+}
+#booking-form{background:var(--navy-m);padding:80px 0;position:relative}
+#booking-form .si{max-width:640px;margin:0 auto;padding:0 24px}
+#booking-form .sh{text-align:center;margin-bottom:40px}
+.reg-form{display:flex;flex-direction:column;gap:18px}
+.reg-field{display:flex;flex-direction:column;gap:6px}
+.reg-field label{color:var(--gold-l);font-size:14px;letter-spacing:1px;font-family:'Noto Serif TC',serif}
+.reg-field input,.reg-field select,.reg-field textarea{
+  background:rgba(250,246,238,.05);border:1px solid var(--border);
+  color:var(--cream);padding:12px 14px;font-size:15px;border-radius:2px;
+  font-family:inherit;outline:none;transition:border-color .3s;
+}
+.reg-field input:focus,.reg-field select:focus,.reg-field textarea:focus{border-color:var(--gold)}
+.reg-field select option{background:var(--navy);color:var(--cream)}
+.reg-submit{
+  margin-top:8px;background:transparent;border:1px solid var(--gold);color:var(--gold-l);
+  padding:14px 28px;font-size:16px;letter-spacing:3px;cursor:pointer;
+  font-family:'Noto Serif TC',serif;transition:all .3s;
+}
+.reg-submit:hover{background:var(--gold);color:var(--navy)}
+.reg-submit:disabled{opacity:.5;cursor:not-allowed}
+.reg-status{font-size:14px;letter-spacing:1px;margin-top:4px;min-height:20px}
+.reg-status.ok{color:#8fd19e}
+.reg-status.err{color:#e07a7a}
+</style>
+
 </head>
 <body>
 
@@ -3585,6 +3619,45 @@ p, li { font-size: 26px !important; }
       </div>
     </div>
     
+  </div>
+</section>
+
+
+<!-- BOOKING FORM (writes to Supabase `registrations` table) -->
+<section id="booking-form">
+  <div class="si">
+    <div class="sh">
+      <div class="sbadge reveal">Booking</div>
+      <h2 class="stitle reveal rd1">線 上 報 名 諮 詢</h2>
+      <p class="ssub reveal rd2">填寫資料，我們將盡快與您聯繫確認</p>
+      <div class="gline reveal rd3"></div>
+    </div>
+    <form class="reg-form" id="reg-form">
+      <div class="reg-field">
+        <label for="reg-name">姓名 *</label>
+        <input type="text" id="reg-name" name="name" required>
+      </div>
+      <div class="reg-field">
+        <label for="reg-phone">聯絡電話 *</label>
+        <input type="tel" id="reg-phone" name="phone" required>
+      </div>
+      <div class="reg-field">
+        <label for="reg-email">Email</label>
+        <input type="email" id="reg-email" name="email">
+      </div>
+      <div class="reg-field">
+        <label for="reg-course">想了解的課程 / 方案</label>
+        <select id="reg-course" name="course">
+          <option value="">請選擇（可留空）</option>
+        </select>
+      </div>
+      <div class="reg-field">
+        <label for="reg-note">留言</label>
+        <textarea id="reg-note" name="note" rows="4"></textarea>
+      </div>
+      <button type="submit" class="reg-submit" id="reg-submit-btn">送 出 報 名</button>
+      <div class="reg-status" id="reg-status"></div>
+    </form>
   </div>
 </section>
 
@@ -4713,5 +4786,140 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 
+
+<!-- ===== Supabase integration: dynamic pricing + registration form ===== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  var SUPABASE_URL = "https://vmwwmowgijcskcrajmzg.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_2LJUwfRcENwZrRoTDiebdA_G8BYzjIP";
+  var sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // 供報名表單「想了解的課程」下拉選單使用：value 編碼為 course:<uuid> 或 plan:<uuid>
+  var optionSource = [];
+
+  function stripWs(s) {
+    return (s || "").replace(/\s+/g, "");
+  }
+
+  // ---- 1) 動態價格徽章：抓 courses + membership_plans，比對每個 modal 的標題 ----
+  function applyPriceBadges(courses, plans) {
+    var priceMap = {};
+    (courses || []).forEach(function (c) {
+      priceMap[stripWs(c.name)] = c.price_note || (c.price ? ("$" + c.price) : "洽詢");
+    });
+    (plans || []).forEach(function (p) {
+      priceMap[stripWs(p.name)] = p.price && p.price > 0 ? ("$" + p.price + " / 月") : "洽詢（請聯繫確認方案價格）";
+    });
+
+    document.querySelectorAll(".modal-title").forEach(function (titleEl) {
+      var key = stripWs(titleEl.textContent);
+      if (!priceMap[key]) return;
+      var header = titleEl.closest(".modal-header");
+      if (!header) return;
+      var badge = header.querySelector(".modal-price-badge");
+      if (!badge) {
+        badge = document.createElement("div");
+        badge.className = "modal-price-badge";
+        header.appendChild(badge);
+      }
+      badge.textContent = "方案價格：" + priceMap[key];
+    });
+  }
+
+  // ---- 2) 報名表單「想了解的課程」下拉選單 ----
+  function populateCourseSelect(courses, plans) {
+    var select = document.getElementById("reg-course");
+    if (!select) return;
+    (courses || []).forEach(function (c) {
+      var opt = document.createElement("option");
+      opt.value = "course:" + c.id;
+      opt.textContent = c.category ? (c.category + " - " + c.name) : c.name;
+      select.appendChild(opt);
+    });
+    (plans || []).forEach(function (p) {
+      var opt = document.createElement("option");
+      opt.value = "plan:" + p.id;
+      opt.textContent = "會員專屬方案 - " + p.name;
+      select.appendChild(opt);
+    });
+  }
+
+  async function loadPricingData() {
+    try {
+      var coursesRes = await sbClient.from("courses").select("id,name,category,price,price_note").eq("is_active", true).order("sort_order");
+      var plansRes = await sbClient.from("membership_plans").select("id,name,price").eq("is_active", true).order("sort_order");
+      var courses = coursesRes.data || [];
+      var plans = plansRes.data || [];
+      applyPriceBadges(courses, plans);
+      populateCourseSelect(courses, plans);
+    } catch (err) {
+      console.error("讀取課程/方案資料失敗：", err);
+    }
+  }
+
+  // ---- 3) 報名表單送出 -> 寫入 Supabase registrations 表 ----
+  function setupRegForm() {
+    var form = document.getElementById("reg-form");
+    if (!form) return;
+    var statusEl = document.getElementById("reg-status");
+    var btn = document.getElementById("reg-submit-btn");
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      statusEl.textContent = "";
+      statusEl.className = "reg-status";
+      btn.disabled = true;
+      btn.textContent = "送出中...";
+
+      var name = document.getElementById("reg-name").value.trim();
+      var phone = document.getElementById("reg-phone").value.trim();
+      var email = document.getElementById("reg-email").value.trim();
+      var courseSelectEl = document.getElementById("reg-course");
+      var courseVal = courseSelectEl.value;
+      var courseLabel = courseSelectEl.options[courseSelectEl.selectedIndex]
+        ? courseSelectEl.options[courseSelectEl.selectedIndex].textContent
+        : "";
+      var message = document.getElementById("reg-note").value.trim();
+
+      var payload = {
+        name: name,
+        phone: phone,
+        email: email || null,
+        course: courseVal ? courseLabel : null,
+        message: message || null,
+        status: "new",
+        amount: 0
+      };
+      if (courseVal.indexOf("course:") === 0) {
+        payload.course_id = courseVal.slice(7);
+      } else if (courseVal.indexOf("plan:") === 0) {
+        payload.plan_id = courseVal.slice(5);
+      }
+
+      try {
+        var res = await sbClient.from("registrations").insert([payload]);
+        if (res.error) throw res.error;
+        statusEl.textContent = "✓ 已收到您的報名資料，我們會盡快與您聯繫！";
+        statusEl.className = "reg-status ok";
+        form.reset();
+      } catch (err) {
+        console.error("報名送出失敗：", err);
+        statusEl.textContent = "送出失敗，請改用 LINE 或 Email 聯繫我們（" + (err.message || "") + "）";
+        statusEl.className = "reg-status err";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "送 出 報 名";
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    loadPricingData();
+    setupRegForm();
+  });
+})();
+</script>
+
 </body>
-</html
+</html>
