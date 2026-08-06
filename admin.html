@@ -104,6 +104,7 @@
       <div class="tab active" data-tab="content">內容編輯</div>
       <div class="tab" data-tab="regs">報名管理</div>
       <div class="tab" data-tab="photos">相片管理</div>
+      <div class="tab" data-tab="courses">課程管理</div>
     </div>
 
     <!-- 內容編輯 -->
@@ -187,6 +188,14 @@
       <div id="galleryPhotoList-highlight"></div>
     </div>
 
+    <!-- 課程管理 -->
+    <div class="panel" id="panel-courses">
+      <div class="sub" style="margin-bottom:16px">
+        更換課程/方案的主圖、說明文字與特色列表。留空的欄位，網站會維持原本的文字/圖片，不會被覆蓋。
+      </div>
+      <div id="coursesList"></div>
+    </div>
+
   </div>
 </div>
 
@@ -239,6 +248,7 @@
     loadContent();
     loadRegs();
     loadPhotos();
+    loadCourses();
   }
 
   // ---- Tabs ----
@@ -553,6 +563,96 @@
   });
 
   checkSession();
+
+  // ---- 課程管理：編輯 courses / membership_plans 的主圖、說明、特色列表 ----
+  var coursesCache = []; // [{table, id, name, category, image_url, description, features_text}]
+
+  async function loadCourses(){
+    var list = document.getElementById('coursesList');
+    list.innerHTML = '載入中...';
+    var coursesRes = await sb.from('courses')
+      .select('id,name,category,image_url,description,features_text')
+      .order('sort_order', { ascending: true });
+    var plansRes = await sb.from('membership_plans')
+      .select('id,name,image_url,description,features_text')
+      .order('sort_order', { ascending: true });
+    if (coursesRes.error) { list.innerHTML = '載入失敗：' + coursesRes.error.message; return; }
+    if (plansRes.error) { list.innerHTML = '載入失敗：' + plansRes.error.message; return; }
+
+    coursesCache = (coursesRes.data || []).map(function(r){ r.table = 'courses'; return r; })
+      .concat((plansRes.data || []).map(function(r){ r.table = 'membership_plans'; r.category = '會員專屬方案'; return r; }));
+
+    list.innerHTML = '';
+    var lastCategory = null;
+    coursesCache.forEach(function(row){
+      if (row.category !== lastCategory) {
+        var h = document.createElement('div');
+        h.className = 'sub-h';
+        h.style.marginTop = '20px';
+        h.textContent = row.category;
+        list.appendChild(h);
+        lastCategory = row.category;
+      }
+      list.appendChild(renderCourseCard(row));
+    });
+  }
+
+  function renderCourseCard(row){
+    var card = document.createElement('div');
+    card.className = 'photo-card';
+    var imgHtml = row.image_url
+      ? '<img src="' + row.image_url + '">'
+      : '<div style="width:100%;aspect-ratio:4/3;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px">尚未設定圖片</div>';
+    card.innerHTML =
+      imgHtml +
+      '<div class="photo-card-body">' +
+        '<div class="photo-card-key">' + escapeHtml(row.name) + '</div>' +
+        '<input type="file" accept="image/*" class="course-img-input">' +
+        '<div class="field" style="margin-top:8px">' +
+          '<label>說明文字</label>' +
+          '<textarea rows="2" class="course-desc-input" placeholder="課程/方案說明（留空則維持原本文字）">' + (row.description ? escapeHtml(row.description) : '') + '</textarea>' +
+        '</div>' +
+        '<div class="field" style="margin-top:8px">' +
+          '<label>特色列表（一行一項）</label>' +
+          '<textarea rows="4" class="course-features-input" placeholder="留空則維持原本特色列表">' + (row.features_text ? escapeHtml(row.features_text) : '') + '</textarea>' +
+        '</div>' +
+        '<div class="photo-card-actions">' +
+          '<button class="btn-small save">儲存</button>' +
+          '<span class="msg"></span>' +
+        '</div>' +
+      '</div>';
+
+    var fileInput = card.querySelector('.course-img-input');
+    var descInput = card.querySelector('.course-desc-input');
+    var featInput = card.querySelector('.course-features-input');
+    var msg = card.querySelector('.msg');
+
+    card.querySelector('.save').addEventListener('click', async function(){
+      var btn = this;
+      btn.disabled = true;
+      msg.textContent = '儲存中...'; msg.className = 'msg';
+      try {
+        var updates = {
+          description: descInput.value.trim() || null,
+          features_text: featInput.value.trim() || null
+        };
+        if (fileInput.files[0]) {
+          updates.image_url = await uploadImageFile(fileInput.files[0], 'course-detail');
+        }
+        var result = await sb.from(row.table).update(updates).eq('id', row.id);
+        if (result.error) throw result.error;
+        msg.textContent = '已儲存'; msg.className = 'msg ok';
+        setTimeout(function(){ msg.textContent=''; }, 2000);
+        loadCourses();
+      } catch(e) {
+        msg.textContent = '失敗：' + (e.message || e); msg.className = 'msg err';
+      }
+      btn.disabled = false;
+    });
+
+    return card;
+  }
+
 })();
 </script>
 </body>

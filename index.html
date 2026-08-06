@@ -4876,14 +4876,80 @@ document.addEventListener('keydown', function(e) {
     });
   }
 
+  // ---- 2b) 課程管理：換主圖 + 改詳情文字（image_url / description / features_text）----
+  function buildFeaturesSection(featuresText) {
+    var lis = featuresText.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!lis.length) return "";
+    var html = '<div class="modal-section"><div class="modal-section-title">課程特色</div><ul class="modal-features">';
+    lis.forEach(function (li) {
+      var span = document.createElement("span");
+      span.textContent = li;
+      html += "<li>" + span.innerHTML + "</li>";
+    });
+    html += "</ul></div>";
+    return html;
+  }
+
+  function buildDescriptionSection(description) {
+    var p = document.createElement("p");
+    p.textContent = description;
+    return '<div class="modal-section"><div class="modal-section-title">課程說明</div>' + p.outerHTML + "</div>";
+  }
+
+  function applyCourseDetails(courses, plans) {
+    var detailMap = {};
+    (courses || []).concat(plans || []).forEach(function (r) {
+      detailMap[stripWs(r.name)] = r;
+    });
+
+    document.querySelectorAll(".pci-btn-detail").forEach(function (btn) {
+      var m = (btn.getAttribute("onclick") || "").match(/openModal\('([^']+)'\)/);
+      if (!m) return;
+      var modalId = m[1];
+      var titleEl = document.getElementById(modalId + "-title");
+      if (!titleEl) return;
+      var row = detailMap[stripWs(titleEl.textContent)];
+      if (!row) return;
+
+      // 換主圖：同時更新卡片縮圖與詳情彈窗大圖
+      if (row.image_url) {
+        var cardWrap = btn.closest(".plan-card-img");
+        if (cardWrap) {
+          var cardImg = cardWrap.querySelector(".pci-img");
+          if (cardImg) cardImg.src = row.image_url;
+        }
+        var modalImg = document.querySelector("#" + modalId + " .modal-img");
+        if (modalImg) modalImg.src = row.image_url;
+      }
+
+      // 改詳情文字：說明 + 特色列表（留空則保留原本靜態內容）
+      if (row.description || row.features_text) {
+        var body = document.querySelector("#" + modalId + " .modal-body");
+        if (body) {
+          var newHtml = "";
+          if (row.description) newHtml += buildDescriptionSection(row.description);
+          if (row.features_text) newHtml += buildFeaturesSection(row.features_text);
+          body.querySelectorAll(".modal-section").forEach(function (el) { el.remove(); });
+          var note = body.querySelector(".modal-note");
+          if (note) {
+            note.insertAdjacentHTML("beforebegin", newHtml);
+          } else {
+            body.insertAdjacentHTML("afterbegin", newHtml);
+          }
+        }
+      }
+    });
+  }
+
   async function loadPricingData() {
     try {
-      var coursesRes = await sbClient.from("courses").select("id,name,category,price,price_note").eq("is_active", true).order("sort_order");
-      var plansRes = await sbClient.from("membership_plans").select("id,name,price").eq("is_active", true).order("sort_order");
+      var coursesRes = await sbClient.from("courses").select("id,name,category,price,price_note,image_url,description,features_text").eq("is_active", true).order("sort_order");
+      var plansRes = await sbClient.from("membership_plans").select("id,name,price,image_url,description,features_text").eq("is_active", true).order("sort_order");
       var courses = coursesRes.data || [];
       var plans = plansRes.data || [];
       applyPriceBadges(courses, plans);
       populateCourseSelect(courses, plans);
+      applyCourseDetails(courses, plans);
     } catch (err) {
       console.error("讀取課程/方案資料失敗：", err);
     }
