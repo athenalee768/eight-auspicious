@@ -3048,6 +3048,61 @@ p, li { font-size: 26px !important; }
 }
 </style>
 
+
+<style>
+.sub-menu li.has-sub-flyout { position: relative; }
+.sub-menu li.has-sub-flyout > a::after {
+  content: ' ◂';
+  opacity: .6;
+  font-size: 16px;
+}
+.sub-menu-flyout {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  margin-right: 10px;
+  min-width: 240px;
+  background: linear-gradient(160deg, rgba(11,31,58,.97) 0%, rgba(20,45,80,.95) 100%);
+  border: 1px solid rgba(201,168,76,.25);
+  box-shadow: 0 16px 48px rgba(0,0,0,.5);
+  border-radius: 2px;
+  list-style: none;
+  margin-top: 0;
+  padding: 14px 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  transform: translateX(6px);
+  z-index: 600;
+}
+.has-sub-flyout:hover .sub-menu-flyout {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.sub-menu-flyout li { list-style: none; margin: 0; }
+.sub-menu-flyout a {
+  display: block;
+  padding: 14px 28px !important;
+  font-size: 20px !important;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+  color: rgba(245,230,184,.9) !important;
+  font-weight: 400 !important;
+  font-family: '微軟正黑體','Microsoft JhengHei','PingFang TC','Noto Sans TC',sans-serif !important;
+}
+.sub-menu-flyout a::after { display: none !important; }
+.sub-menu-flyout li:not(:last-child) a {
+  border-bottom: 1px solid rgba(201,168,76,.08);
+}
+.sub-menu-flyout a:hover {
+  background: rgba(201,168,76,.12);
+  color: var(--gold-l) !important;
+}
+</style>
+
 </head>
 <body>
 
@@ -3103,13 +3158,16 @@ p, li { font-size: 26px !important; }
     </li>
     <li class="has-sub"><a href="#pricing">課程</a>
       <ul class="sub-menu">
-        <li><a href="#pricing">課程方案總覽</a></li>
-        <li><a href="#plan-intro">體驗入門系列</a></li>
-        <li><a href="#plan-full">完整療癒系列</a></li>
-        <li><a href="#plan-deep">深度療癒系列</a></li>
-        <li><a href="#plan-training">專業培訓系列</a></li>
-        <li><a href="#plan-group">團體紓壓方案</a></li>
-        <li><a href="#plan-member">會員專屬方案</a></li>
+        <li class="has-sub-flyout"><a href="#pricing">課程方案總覽</a>
+          <ul class="sub-menu-flyout">
+            <li><a href="#plan-intro">體驗入門系列</a></li>
+            <li><a href="#plan-full">完整療癒系列</a></li>
+            <li><a href="#plan-deep">深度療癒系列</a></li>
+            <li><a href="#plan-training">專業培訓系列</a></li>
+            <li><a href="#plan-group">團體紓壓方案</a></li>
+            <li><a href="#plan-member">會員專屬方案</a></li>
+          </ul>
+        </li>
         <li><a href="#travel">療癒旅行</a></li>
       </ul>
     </li>
