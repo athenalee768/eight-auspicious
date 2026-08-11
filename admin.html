@@ -326,10 +326,44 @@
     loadGalleryPhotos();
   }
 
+  function resizeImageFile(file, maxDim, quality){
+    return new Promise(function(resolve, reject){
+      var img = new Image();
+      var reader = new FileReader();
+      reader.onload = function(e){
+        img.onload = function(){
+          var w = img.width, h = img.height;
+          var scale = Math.min(1, maxDim / Math.max(w, h));
+          var cw = Math.round(w * scale), ch = Math.round(h * scale);
+          var canvas = document.createElement('canvas');
+          canvas.width = cw; canvas.height = ch;
+          canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+          canvas.toBlob(function(blob){
+            if (!blob) { reject(new Error('圖片壓縮失敗')); return; }
+            resolve(new File([blob], (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' }));
+          }, 'image/jpeg', quality);
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function uploadImageFile(file, folder){
-    var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    var toUpload = file;
+    try {
+      if (file.type && file.type.indexOf('image/') === 0) {
+        toUpload = await resizeImageFile(file, 1600, 0.85);
+      }
+    } catch (e) {
+      console.error('圖片壓縮失敗，改用原始檔案上傳：', e);
+      toUpload = file;
+    }
+    var ext = (toUpload.name.split('.').pop() || 'jpg').toLowerCase();
     var path = folder + '/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + ext;
-    var result = await sb.storage.from(STORAGE_BUCKET).upload(path, file);
+    var result = await sb.storage.from(STORAGE_BUCKET).upload(path, toUpload);
     if (result.error) throw result.error;
     var pub = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
     return pub.data.publicUrl;

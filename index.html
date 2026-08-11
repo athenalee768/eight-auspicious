@@ -5109,11 +5109,13 @@ document.addEventListener('keydown', function(e) {
       var frame = document.createElement("div");
       frame.className = "hl-frame";
       frame.style.aspectRatio = "4 / 3";
+      frame.style.background = "#0b1f3a";
       var img = document.createElement("img");
       img.src = r.url;
       img.alt = r.caption || "活動花絮";
       img.loading = "lazy";
       img.className = "hl-img";
+      img.style.objectFit = "contain";
       var overlay = document.createElement("div");
       overlay.className = "hl-overlay";
       frame.appendChild(img);
@@ -5133,11 +5135,13 @@ document.addEventListener('keydown', function(e) {
       item.className = "extra-gallery-item";
       var frame = document.createElement("div");
       frame.className = "extra-gallery-frame";
+      frame.style.background = "#0b1f3a";
       var img = document.createElement("img");
       img.src = r.url;
       img.alt = r.caption || "";
       img.loading = "lazy";
       img.className = "extra-gallery-img";
+      img.style.objectFit = "contain";
       frame.appendChild(img);
       item.appendChild(frame);
       if (r.caption) {
