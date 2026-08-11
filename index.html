@@ -5106,6 +5106,7 @@ document.addEventListener('keydown', function(e) {
     rows.forEach(function (r) {
       var item = document.createElement("div");
       item.className = "hl-item";
+      item.style.gridColumn = "span 1";
       var frame = document.createElement("div");
       frame.className = "hl-frame";
       frame.style.aspectRatio = "4 / 3";
