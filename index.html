@@ -2629,8 +2629,6 @@ body.modal-open {
   transform: translateY(-3px);
 }
 /* Force visible aspect ratio on each item */
-.hl-item:nth-child(1) { grid-column: span 2; }
-.hl-item:nth-child(6) { grid-column: span 2; }
 
 .hl-frame {
   position: relative;
@@ -2638,10 +2636,10 @@ body.modal-open {
   display: block;
   line-height: 0;
 }
-/* Portrait items: give explicit 3:4 box */
+/* Uniform aspect ratio across all highlight items */
 .hl-item:nth-child(3) .hl-frame,
 .hl-item:nth-child(4) .hl-frame {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 3;
 }
 /* Landscape items */
 .hl-item:nth-child(1) .hl-frame,
@@ -2656,12 +2654,12 @@ body.modal-open {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   display: block;
   transition: transform .55s cubic-bezier(.25,.46,.45,.94);
 }
-.hl-frame { position: relative; overflow: hidden; }
+.hl-frame { position: relative; overflow: hidden; background: #0b1f3a; }
 .hl-item:hover .hl-img { transform: scale(1.05); }
 .hl-overlay {
   position: absolute; inset: 0;
