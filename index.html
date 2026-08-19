@@ -3277,7 +3277,7 @@ p, li { font-size: 26px !important; }
     <div class="event-hero">
       <div>
         <div class="event-tag reveal">Free Event · 免費參加</div>
-        <h3 class="event-title-cn reveal rd1">香巴拉傳奇<br>人間最後淨土</h3>
+        <h3 id="event-title-main" class="event-title-cn reveal rd1">香巴拉傳奇<br>人間最後淨土</h3>
         <div class="event-title-sub reveal rd2">西藏傳奇 · 川藏稻城亞丁 · 雲南香格里拉</div>
         <div class="event-details reveal rd3">
           <div class="event-detail">
@@ -3288,8 +3288,8 @@ p, li { font-size: 26px !important; }
           <div class="event-detail">
             <div class="event-detail-icon">✨</div>
             <div><div class="event-dl">現場體驗</div>
-            <div class="event-dv">西藏八吉祥頌缽療癒體驗</div>
-            <div class="event-ds">轉經輪・掛風馬旗・燒桑・藏醫酥油茶・心靈交流</div></div>
+            <div id="event-exp-value" class="event-dv">西藏八吉祥頌缽療癒體驗</div>
+            <div id="event-exp-sub-value" class="event-ds">轉經輪・掛風馬旗・燒桑・藏醫酥油茶・心靈交流</div></div>
           </div>
           <div class="event-detail">
             <div class="event-detail-icon">🎵</div>
@@ -3839,7 +3839,7 @@ p, li { font-size: 26px !important; }
     <div class="cta-inner">
       <div class="sbadge reveal">Connect With Us</div>
       <h2 class="cta-title reveal rd1">立 即 預 約 體 驗</h2>
-      <p class="cta-sub reveal rd2">探索屬於你的頻率療癒旅程<br>用聲音聽見身體 · 用香氣安定靈魂 · 讓生命重新流動</p>
+      <p id="cta-sub-text" class="cta-sub reveal rd2">探索屬於你的頻率療癒旅程<br>用聲音聽見身體 · 用香氣安定靈魂 · 讓生命重新流動</p>
       <div class="cta-contacts reveal rd3">
         <a href="https://lin.ee/Q8XKTw6" class="cta-btn cta-btn-line" target="_blank" rel="noopener">
           <span class="cta-btn-shimmer"></span>
@@ -5182,11 +5182,37 @@ document.addEventListener('keydown', function(e) {
     });
   }
 
+  // ---- 6) 內容編輯：把 admin.html「內容編輯」分頁存進 site_content 的文字套用到前台 ----
+  // key 對應：資料庫 key -> 前台元素 id（依需求擴充這個對照表即可新增欄位）
+  var SITE_CONTENT_MAP = {
+    cta_sub: "cta-sub-text",
+    event_exp_title: "event-title-main",
+    event_exp_sub: "event-exp-value"
+  };
+
+  async function loadSiteContent() {
+    try {
+      var res = await sbClient.from("site_content").select("key,value");
+      if (res.error) throw res.error;
+      (res.data || []).forEach(function (row) {
+        if (!row.value) return; // 留空則保留原本靜態內容
+        var elId = SITE_CONTENT_MAP[row.key];
+        if (!elId) return; // 尚未對應到前台元素的欄位，先略過
+        var el = document.getElementById(elId);
+        if (!el) return;
+        el.innerHTML = row.value.replace(/\n/g, "<br>");
+      });
+    } catch (err) {
+      console.error("讀取內容編輯資料失敗：", err);
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     loadPricingData();
     setupRegForm();
     loadGalleryPhotos();
     populateFlyoutIcons();
+    loadSiteContent();
   });
 })();
 </script>
