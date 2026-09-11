@@ -3190,12 +3190,34 @@ p, li { font-size: 26px !important; }
 </head>
 <body>
 <script>
-// 開啟網站時強制停在最上面，避免瀏覽器記住上次捲動位置或錨點造成的跳頁
+// 開啟網站時的捲動定位：
+// 1) 沒有網址錨點（一般開啟首頁）：資料尚未載入穩定前，持續停留在最上面。
+// 2) 有網址錨點（例如 #health-biz）：不搶著捲動，交由下方 Supabase 資料載入完成後統一定位，
+//    避免圖片、動態內容陸續載入導致頁面高度改變、捲動位置跟著跑掉。
 if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-if (!location.hash) { window.scrollTo(0, 0); }
-window.addEventListener('load', function () {
-  if (!location.hash) { window.scrollTo(0, 0); }
-});
+
+(function () {
+  if (location.hash) { return; }
+  var userInteracted = false;
+  function markInteracted() { userInteracted = true; }
+  ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (evt) {
+    window.addEventListener(evt, markInteracted, { passive: true, once: true });
+  });
+
+  function forceTop() {
+    if (!userInteracted) { window.scrollTo(0, 0); }
+  }
+
+  forceTop();
+  document.addEventListener('DOMContentLoaded', forceTop);
+  window.addEventListener('load', forceTop);
+
+  var start = Date.now();
+  var timer = setInterval(function () {
+    if (userInteracted || Date.now() - start > 3000) { clearInterval(timer); return; }
+    forceTop();
+  }, 100);
+})();
 </script>
 
 <div id="scroll-progress"></div>
@@ -5477,12 +5499,36 @@ document.addEventListener('keydown', function(e) {
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    loadPricingData();
+    var p1 = loadPricingData();
     setupRegForm();
-    loadGalleryPhotos();
+    var p2 = loadGalleryPhotos();
     populateFlyoutIcons();
-    loadSiteContent();
-    loadBriefings();
+    var p3 = loadSiteContent();
+    var p4 = loadBriefings();
+
+    // 課程/相片/說明會/內容編輯文字都是非同步從 Supabase 讀取，會在頁面顯示後才陸續插入，
+    // 導致頁面高度改變。等這些資料都載入完成、版面穩定後，才統一決定：
+    // 有網址錨點（例如 #health-biz）就捲到該區塊，否則捲到最上面。
+    var settleUserInteracted = false;
+    ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (evt) {
+      window.addEventListener(evt, function () { settleUserInteracted = true; }, { passive: true, once: true });
+    });
+
+    function settleScrollPosition() {
+      if (settleUserInteracted) return;
+      if (location.hash) {
+        var target = document.querySelector(location.hash);
+        if (target) { target.scrollIntoView({ block: "start" }); return; }
+      }
+      window.scrollTo(0, 0);
+    }
+
+    Promise.all([p1, p2, p3, p4]).catch(function () {}).then(function () {
+      requestAnimationFrame(function () { requestAnimationFrame(settleScrollPosition); });
+      // 保險：圖片/字型延遲解碼可能再次微幅改變高度，短暫延遲後再修正一次
+      setTimeout(settleScrollPosition, 600);
+      setTimeout(settleScrollPosition, 1500);
+    });
   });
 })();
 </script>
