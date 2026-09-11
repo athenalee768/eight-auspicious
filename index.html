@@ -48,6 +48,7 @@ body{font-family:'微軟正黑體','Microsoft JhengHei','PingFang TC','Noto Sans
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;transition:all .5s}
+[id]{scroll-margin-top:100px}
 nav.scrolled{background:rgba(11,31,58,.96);backdrop-filter:blur(20px);padding:12px 40px;border-bottom:1px solid var(--border)}
 .nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
 .nav-logo-img{width:58px;height:58px;border-radius:50%;object-fit:cover;border:1.5px solid var(--gold);box-shadow:0 0 16px var(--glow)}
@@ -3188,6 +3189,14 @@ p, li { font-size: 26px !important; }
 
 </head>
 <body>
+<script>
+// 開啟網站時強制停在最上面，避免瀏覽器記住上次捲動位置或錨點造成的跳頁
+if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+if (!location.hash) { window.scrollTo(0, 0); }
+window.addEventListener('load', function () {
+  if (!location.hash) { window.scrollTo(0, 0); }
+});
+</script>
 
 <div id="scroll-progress"></div>
 <canvas id="particle-canvas" aria-hidden="true"></canvas>
