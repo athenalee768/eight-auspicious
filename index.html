@@ -3151,27 +3151,12 @@ p, li { font-size: 26px !important; }
 .hb-integration-title{color:var(--gold-l);font-size:15px;letter-spacing:1px;margin-bottom:4px}
 .hb-integration-desc{color:var(--text-m);font-size:13px;line-height:1.6}
 @media(max-width:768px){.hb-integration-grid{grid-template-columns:1fr}}
-.hb-three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:960px;margin:0 auto 20px}
-.hb-three-item{text-align:center;padding:24px 16px;border:1px solid var(--border)}
-.hb-three-icon{font-size:28px;margin-bottom:10px}
-.hb-three-title{color:var(--gold-l);font-size:16px;letter-spacing:1px;margin-bottom:8px}
-.hb-three-desc{color:var(--text-m);font-size:13px;line-height:1.7}
-@media(max-width:768px){.hb-three-col{grid-template-columns:1fr}}
-.hb-hex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:900px;margin:0 auto 20px}
-.hb-hex-item{text-align:center;padding:18px 10px;border:1px solid var(--border);color:var(--text-c);font-size:13px;letter-spacing:1px;background:rgba(201,168,76,.04)}
-@media(max-width:768px){.hb-hex-grid{grid-template-columns:repeat(2,1fr)}}
 .hb-who-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1100px;margin:0 auto 20px}
 .hb-who-card{padding:22px 16px;border:1px solid var(--border);text-align:center}
 .hb-who-title{color:var(--gold-l);font-size:15px;letter-spacing:1px;margin-bottom:8px}
 .hb-who-desc{color:var(--text-m);font-size:12.5px;line-height:1.7}
 @media(max-width:900px){.hb-who-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.hb-who-grid{grid-template-columns:1fr}}
-.hb-plan-table-wrap{max-width:900px;margin:0 auto 20px;overflow-x:auto}
-.hb-plan-table{width:100%;border-collapse:collapse;min-width:600px}
-.hb-plan-table th,.hb-plan-table td{border:1px solid var(--border);padding:14px 10px;text-align:center;font-size:13px;color:var(--text-c)}
-.hb-plan-table th{color:var(--gold-l);letter-spacing:1px;font-weight:500;background:rgba(201,168,76,.06)}
-.hb-plan-table td:first-child,.hb-plan-table th:first-child{text-align:left;color:var(--gold-p)}
-.hb-plan-table .hb-plan-recommend{background:rgba(201,168,76,.1)}
 .hb-quote{max-width:680px;margin:56px auto;text-align:center;padding:32px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .hb-quote p{color:var(--gold-p);font-family:'Noto Serif TC',serif;font-size:16px;line-height:2;letter-spacing:1px}
 .hb-quote-sub{margin-top:12px;color:var(--text-m)!important;font-size:13px!important}
@@ -3190,14 +3175,12 @@ p, li { font-size: 26px !important; }
 </head>
 <body>
 <script>
-// 開啟網站時的捲動定位：
-// 1) 沒有網址錨點（一般開啟首頁）：資料尚未載入穩定前，持續停留在最上面。
-// 2) 有網址錨點（例如 #health-biz）：不搶著捲動，交由下方 Supabase 資料載入完成後統一定位，
-//    避免圖片、動態內容陸續載入導致頁面高度改變、捲動位置跟著跑掉。
+// 開啟網站時一律停在最上面（不論網址是否帶有錨點，例如瀏覽器記住的 #health-biz），
+// 在頁面完全載入、資料穩定之前持續拉回最上面，避免圖片與動態內容陸續載入
+// 導致頁面高度改變、捲動位置跟著跑掉。使用者自己開始捲動後就不再介入。
 if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
 
 (function () {
-  if (location.hash) { return; }
   var userInteracted = false;
   function markInteracted() { userInteracted = true; }
   ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (evt) {
@@ -3292,15 +3275,15 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
         </li>
       </ul>
     </li>
-    <li class="has-sub"><a href="#highlights">花絮</a>
-      <ul class="sub-menu">
-        <li><a href="#highlights">活動花絮</a></li>
-      </ul>
-    </li>
     <li class="has-sub nav-hb-item"><a href="#health-biz"><span class="nav-hb-icon">✨</span>健康輕創業</a>
       <ul class="sub-menu">
         <li><a href="#health-biz">方案介紹</a></li>
         <li><a href="#health-biz-briefings">說明會資訊</a></li>
+      </ul>
+    </li>
+    <li class="has-sub"><a href="#highlights">花絮</a>
+      <ul class="sub-menu">
+        <li><a href="#highlights">活動花絮</a></li>
       </ul>
     </li>
     <li class="has-sub"><a href="#faq">FAQ</a>
@@ -3321,8 +3304,8 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   <a href="#teachers" class="menu-link">師資介紹</a>
   <a href="#travel" class="menu-link">療癒旅行</a>
   <a href="#pricing" class="menu-link">課程方案</a>
-  <a href="#highlights" class="menu-link">活動花絮</a>
   <a href="#health-biz" class="menu-link">✨ 健康輕創業</a>
+  <a href="#highlights" class="menu-link">活動花絮</a>
   <a href="#faq" class="menu-link">FAQ</a>
   <a href="#cta" class="menu-link">立即預約</a>
 </div>
@@ -3882,6 +3865,74 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   </div>
 </section>
 
+<!-- HEALTH BIZ -->
+<section id="health-biz">
+  <div class="si">
+    <div class="sh">
+      <div class="sbadge reveal">科技禪意 × 億萬豐盛</div>
+      <h2 id="hb-title" class="stitle reveal rd1">AI 智 慧 健 康 輕 創 業</h2>
+      <p id="hb-subtitle" class="ssub reveal rd2">八吉祥・聲息智養 — 一套系統，開啟未來高科技與自然頻率的藍海創富藍圖</p>
+      <div class="gline reveal rd3"></div>
+    </div>
+
+    <div class="hb-poster-wrap reveal">
+      <p id="hb-intro" class="hb-intro-text">「AI 智慧大數據」精準、追蹤、量化健康；「自然頻率療癒」頌缽、聲息、量子放鬆 —— 全新養生紀元，正式降臨。健康 × 科技 × 收入，開啟你的人生新可能。</p>
+    </div>
+
+    <div class="hb-feature-grid">
+      <div class="hb-feature-card reveal"><div class="hb-feature-icon">🎵</div><div class="hb-feature-name">音頻療癒</div><div class="hb-feature-desc">放鬆身心・喚醒能量</div></div>
+      <div class="hb-feature-card reveal rd1"><div class="hb-feature-icon">🍃</div><div class="hb-feature-name">未來營養</div><div class="hb-feature-desc">日常保養・活力升級</div></div>
+      <div class="hb-feature-card reveal rd2"><div class="hb-feature-icon">🧠</div><div class="hb-feature-name">AI健康管理</div><div class="hb-feature-desc">數據賦能・精準照護</div></div>
+      <div class="hb-feature-card reveal rd3"><div class="hb-feature-icon">🤝</div><div class="hb-feature-name">多元聯盟</div><div class="hb-feature-desc">品牌資源・共享成長</div></div>
+    </div>
+
+    <h3 class="hb-subhead reveal">四 大 核 心 整 合</h3>
+    <div class="hb-integration-grid">
+      <div class="hb-integration-card reveal"><div class="hb-integration-icon">🧠</div><div><div class="hb-integration-title">AI 智慧健康管理分析</div><div class="hb-integration-desc">搭配會員追蹤系統，透過智慧戒指精準捕捉生理數據，讓健康變化可視化。</div></div></div>
+      <div class="hb-integration-card reveal rd1"><div class="hb-integration-icon">💍</div><div><div class="hb-integration-title">MMEETT 智慧穿戴</div><div class="hb-integration-desc">戒指與錄音卡，數據在手，被動復購自動發生。</div></div></div>
+      <div class="hb-integration-card reveal rd2"><div class="hb-integration-icon">🌿</div><div><div class="hb-integration-title">Future Vita 營養與呼吸活力方案</div><div class="hb-integration-desc">結合頌缽音頻療癒，打造呼吸與營養的完美結合。</div></div></div>
+      <div class="hb-integration-card reveal rd3"><div class="hb-integration-icon">🤝</div><div><div class="hb-integration-title">五大經銷聯盟</div><div class="hb-integration-desc">溫罐、酵素、氫氧、精油等頂尖健康產品聯盟採購。</div></div></div>
+    </div>
+
+    <h3 class="hb-subhead reveal">誰 適 合 啟 動 這 份 AI 智 養 事 業</h3>
+    <div class="hb-who-grid">
+      <div class="hb-who-card reveal"><div class="hb-who-title">美業／養生館</div><div class="hb-who-desc">導入高科技儀器，提升客單價與留客率。</div></div>
+      <div class="hb-who-card reveal rd1"><div class="hb-who-title">身心靈工作室</div><div class="hb-who-desc">結合大數據，讓無形的療癒效果變成有形的科學數據。</div></div>
+      <div class="hb-who-card reveal rd2"><div class="hb-who-title">藥局／健康機構</div><div class="hb-who-desc">拓寬服務邊界，打造全人健康中心。</div></div>
+      <div class="hb-who-card reveal rd3"><div class="hb-who-title">行動健管師／個人創業</div><div class="hb-who-desc">一套系統在手，走到哪都是您的頂級行動診所。</div></div>
+    </div>
+
+    <div class="hb-quote reveal">
+      <p>「推薦，能為您加速成長；<br>但真正的豐盛，始終來自於扎實的服務、會員經營、商品與異業合作。」</p>
+      <p class="hb-quote-sub">這是一份可以傳承的永續事業，而不僅僅是短期的推廣遊戲。詳細合作方案與投資內容，歡迎透過 LINE 與我們一對一洽詢。</p>
+    </div>
+
+    <div class="extra-gallery-wrap" id="hb-extra-wrap" style="display:none">
+      <div class="sh" style="margin-bottom:24px">
+        <p class="ssub reveal">更 多 方 案 資 訊</p>
+      </div>
+      <div class="extra-gallery-grid" id="hb-extra-gallery"></div>
+    </div>
+
+    <div class="hb-briefing-wrap reveal">
+      <h3 class="hb-subhead" style="margin-top:0">近 期 說 明 會</h3>
+      <div id="health-biz-briefings" class="hb-briefing-list">
+        <p class="hb-briefing-empty">說明會場次籌備中，歡迎透過 LINE 洽詢最新時間與地點。</p>
+      </div>
+    </div>
+
+    <div class="hb-cta-wrap reveal">
+      <a id="hb-line-link" href="https://lin.ee/Q8XKTw6" class="cta-btn cta-btn-line" target="_blank" rel="noopener">
+        <span class="cta-btn-shimmer"></span>
+        <span class="cta-btn-corner tl"></span><span class="cta-btn-corner tr"></span>
+        <span class="cta-btn-corner bl"></span><span class="cta-btn-corner br"></span>
+        <span class="cta-btn-icon"><svg viewBox="0 0 48 48" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M42 20.54C42 12.25 33.82 5.5 24 5.5C14.18 5.5 6 12.25 6 20.54C6 27.97 12.5 34.18 21.31 35.39C21.93 35.52 22.78 35.8 23 36.32C23.2 36.79 23.12 37.53 23.06 38.02L22.67 40.43C22.54 41.07 22.16 42.88 24 42.19C25.83 41.5 33.71 36.61 37.21 32.61C39.66 29.94 42 25.59 42 20.54Z"/><rect x="19" y="17" width="2" height="9" rx="1" fill="rgba(0,50,15,0.85)"/><path d="M23 17h2v6.5L28.5 17H31v9h-2v-6.5L26 26h-3v-9z" fill="rgba(0,50,15,0.85)"/><rect x="33" y="17" width="2" height="9" rx="1" fill="rgba(0,50,15,0.85)"/><path d="M13 17h2v7h4v2h-6z" fill="rgba(0,50,15,0.85)"/></svg></span>
+        <span class="cta-btn-label">預約招商<br>說明會</span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- HIGHLIGHTS -->
 <section id="highlights">
   <div class="section-parallax-bg" aria-hidden="true"></div>
@@ -3982,106 +4033,6 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
           <p class="qr-sublabel">八吉祥音樂工作室</p>
         </div>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- HEALTH BIZ -->
-<section id="health-biz">
-  <div class="si">
-    <div class="sh">
-      <div class="sbadge reveal">科技禪意 × 億萬豐盛</div>
-      <h2 id="hb-title" class="stitle reveal rd1">AI 智 慧 健 康 輕 創 業</h2>
-      <p id="hb-subtitle" class="ssub reveal rd2">八吉祥・聲息智養 — 一套系統，開啟未來高科技與自然頻率的藍海創富藍圖</p>
-      <div class="gline reveal rd3"></div>
-    </div>
-
-    <div class="hb-poster-wrap reveal">
-      <p id="hb-intro" class="hb-intro-text">「AI 智慧大數據」精準、追蹤、量化健康；「自然頻率療癒」頌缽、聲息、量子放鬆 —— 全新養生紀元，正式降臨。健康 × 科技 × 收入，開啟你的人生新可能。</p>
-    </div>
-
-    <div class="hb-feature-grid">
-      <div class="hb-feature-card reveal"><div class="hb-feature-icon">🎵</div><div class="hb-feature-name">音頻療癒</div><div class="hb-feature-desc">放鬆身心・喚醒能量</div></div>
-      <div class="hb-feature-card reveal rd1"><div class="hb-feature-icon">🍃</div><div class="hb-feature-name">未來營養</div><div class="hb-feature-desc">日常保養・活力升級</div></div>
-      <div class="hb-feature-card reveal rd2"><div class="hb-feature-icon">🧠</div><div class="hb-feature-name">AI健康管理</div><div class="hb-feature-desc">數據賦能・精準照護</div></div>
-      <div class="hb-feature-card reveal rd3"><div class="hb-feature-icon">🤝</div><div class="hb-feature-name">多元聯盟</div><div class="hb-feature-desc">品牌資源・共享成長</div></div>
-    </div>
-
-    <h3 class="hb-subhead reveal">四 大 核 心 整 合</h3>
-    <div class="hb-integration-grid">
-      <div class="hb-integration-card reveal"><div class="hb-integration-icon">🧠</div><div><div class="hb-integration-title">AI 智慧健康管理分析</div><div class="hb-integration-desc">搭配會員追蹤系統，透過智慧戒指精準捕捉生理數據，讓健康變化可視化。</div></div></div>
-      <div class="hb-integration-card reveal rd1"><div class="hb-integration-icon">💍</div><div><div class="hb-integration-title">MMEETT 智慧穿戴</div><div class="hb-integration-desc">戒指與錄音卡，數據在手，被動復購自動發生。</div></div></div>
-      <div class="hb-integration-card reveal rd2"><div class="hb-integration-icon">🌿</div><div><div class="hb-integration-title">Future Vita 營養與呼吸活力方案</div><div class="hb-integration-desc">結合頌缽音頻療癒，打造呼吸與營養的完美結合。</div></div></div>
-      <div class="hb-integration-card reveal rd3"><div class="hb-integration-icon">🤝</div><div><div class="hb-integration-title">五大經銷聯盟</div><div class="hb-integration-desc">溫罐、酵素、氫氧、精油等頂尖健康產品聯盟採購。</div></div></div>
-    </div>
-
-    <h3 class="hb-subhead reveal">零 庫 存・輕 鬆 起 步</h3>
-    <div class="hb-three-col">
-      <div class="hb-three-item reveal"><div class="hb-three-icon">📦</div><div class="hb-three-title">免大量囤貨</div><div class="hb-three-desc">擺脫傳統微商與直銷的庫存壓力，現金流更自由。</div></div>
-      <div class="hb-three-item reveal rd1"><div class="hb-three-icon">💎</div><div class="hb-three-title">多品牌聯盟</div><div class="hb-three-desc">您專注推廣，總部負責整合全球頂尖健康產品。</div></div>
-      <div class="hb-three-item reveal rd2"><div class="hb-three-icon">🏪</div><div class="hb-three-title">微型旗艦店</div><div class="hb-three-desc">軟體、硬體、技術、培訓一次到位，極速啟動您的智慧健康事業。</div></div>
-    </div>
-
-    <h3 class="hb-subhead reveal">六 大 收 益 矩 陣</h3>
-    <div class="hb-hex-grid">
-      <div class="hb-hex-item reveal">AI 健康管理服務</div>
-      <div class="hb-hex-item reveal rd1">八吉祥音頻・療癒服務</div>
-      <div class="hb-hex-item reveal rd2">Future Vita 商品</div>
-      <div class="hb-hex-item reveal rd3">MMEETT 智慧穿戴</div>
-      <div class="hb-hex-item reveal rd4">五大聯盟商品零售</div>
-      <div class="hb-hex-item reveal rd5">新合作夥伴推薦</div>
-    </div>
-
-    <h3 class="hb-subhead reveal">誰 適 合 啟 動 這 份 AI 智 養 事 業</h3>
-    <div class="hb-who-grid">
-      <div class="hb-who-card reveal"><div class="hb-who-title">美業／養生館</div><div class="hb-who-desc">導入高科技儀器，提升客單價與留客率。</div></div>
-      <div class="hb-who-card reveal rd1"><div class="hb-who-title">身心靈工作室</div><div class="hb-who-desc">結合大數據，讓無形的療癒效果變成有形的科學數據。</div></div>
-      <div class="hb-who-card reveal rd2"><div class="hb-who-title">藥局／健康機構</div><div class="hb-who-desc">拓寬服務邊界，打造全人健康中心。</div></div>
-      <div class="hb-who-card reveal rd3"><div class="hb-who-title">行動健管師／個人創業</div><div class="hb-who-desc">一套系統在手，走到哪都是您的頂級行動診所。</div></div>
-    </div>
-
-    <h3 class="hb-subhead reveal">選 擇 您 的 合 作 級 別</h3>
-    <div class="hb-plan-table-wrap reveal">
-      <table class="hb-plan-table">
-        <thead>
-          <tr><th>項目</th><th>初階</th><th class="hb-plan-recommend">PRO（推薦）</th><th>旗艦</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>核心系統與 AI</td><td>基礎配備</td><td class="hb-plan-recommend">+ MMEETT 穿戴</td><td>+ 頂級選品額度</td></tr>
-          <tr><td>行銷拓客體驗券</td><td>15 張</td><td class="hb-plan-recommend">40 張</td><td>80 張</td></tr>
-          <tr><td>經銷聯盟權限</td><td>任選 2 大聯盟</td><td class="hb-plan-recommend">全面解鎖 5 大聯盟</td><td>全面解鎖 5 大聯盟</td></tr>
-          <tr><td>商業培訓與支援</td><td>30 天培訓</td><td class="hb-plan-recommend">90 天陪跑</td><td>180 天陪跑 + 企業企劃</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="hb-quote reveal">
-      <p>「推薦，能為您加速成長；<br>但真正的豐盛，始終來自於扎實的服務、會員經營、商品與異業合作。」</p>
-      <p class="hb-quote-sub">這是一份可以傳承的永續事業，而不僅僅是短期的推廣遊戲。詳細合作方案與投資內容，歡迎透過 LINE 與我們一對一洽詢。</p>
-    </div>
-
-    <div class="extra-gallery-wrap" id="hb-extra-wrap" style="display:none">
-      <div class="sh" style="margin-bottom:24px">
-        <p class="ssub reveal">更 多 方 案 資 訊</p>
-      </div>
-      <div class="extra-gallery-grid" id="hb-extra-gallery"></div>
-    </div>
-
-    <div class="hb-briefing-wrap reveal">
-      <h3 class="hb-subhead" style="margin-top:0">近 期 說 明 會</h3>
-      <div id="health-biz-briefings" class="hb-briefing-list">
-        <p class="hb-briefing-empty">說明會場次籌備中，歡迎透過 LINE 洽詢最新時間與地點。</p>
-      </div>
-    </div>
-
-    <div class="hb-cta-wrap reveal">
-      <a id="hb-line-link" href="https://lin.ee/Q8XKTw6" class="cta-btn cta-btn-line" target="_blank" rel="noopener">
-        <span class="cta-btn-shimmer"></span>
-        <span class="cta-btn-corner tl"></span><span class="cta-btn-corner tr"></span>
-        <span class="cta-btn-corner bl"></span><span class="cta-btn-corner br"></span>
-        <span class="cta-btn-icon"><svg viewBox="0 0 48 48" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M42 20.54C42 12.25 33.82 5.5 24 5.5C14.18 5.5 6 12.25 6 20.54C6 27.97 12.5 34.18 21.31 35.39C21.93 35.52 22.78 35.8 23 36.32C23.2 36.79 23.12 37.53 23.06 38.02L22.67 40.43C22.54 41.07 22.16 42.88 24 42.19C25.83 41.5 33.71 36.61 37.21 32.61C39.66 29.94 42 25.59 42 20.54Z"/><rect x="19" y="17" width="2" height="9" rx="1" fill="rgba(0,50,15,0.85)"/><path d="M23 17h2v6.5L28.5 17H31v9h-2v-6.5L26 26h-3v-9z" fill="rgba(0,50,15,0.85)"/><rect x="33" y="17" width="2" height="9" rx="1" fill="rgba(0,50,15,0.85)"/><path d="M13 17h2v7h4v2h-6z" fill="rgba(0,50,15,0.85)"/></svg></span>
-        <span class="cta-btn-label">預約招商<br>說明會</span>
-      </a>
     </div>
   </div>
 </section>
@@ -5507,8 +5458,8 @@ document.addEventListener('keydown', function(e) {
     var p4 = loadBriefings();
 
     // 課程/相片/說明會/內容編輯文字都是非同步從 Supabase 讀取，會在頁面顯示後才陸續插入，
-    // 導致頁面高度改變。等這些資料都載入完成、版面穩定後，才統一決定：
-    // 有網址錨點（例如 #health-biz）就捲到該區塊，否則捲到最上面。
+    // 導致頁面高度改變、把捲動位置往下推。等這些資料都載入完成、版面穩定後，
+    // 統一再次確保頁面停在最上面（不論網址是否帶有錨點）。
     var settleUserInteracted = false;
     ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(function (evt) {
       window.addEventListener(evt, function () { settleUserInteracted = true; }, { passive: true, once: true });
@@ -5516,10 +5467,6 @@ document.addEventListener('keydown', function(e) {
 
     function settleScrollPosition() {
       if (settleUserInteracted) return;
-      if (location.hash) {
-        var target = document.querySelector(location.hash);
-        if (target) { target.scrollIntoView({ block: "start" }); return; }
-      }
       window.scrollTo(0, 0);
     }
 
