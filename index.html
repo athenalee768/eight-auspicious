@@ -3140,11 +3140,12 @@ p, li { font-size: 26px !important; }
 .hb-feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:960px;margin:0 auto 56px}
 .hb-feature-card{text-align:center;padding:26px 12px;border:1px solid var(--border);background:rgba(255,255,255,.02);transition:border-color .3s,transform .3s}
 .hb-feature-card:hover{border-color:var(--gold);transform:translateY(-4px)}
-.hb-feature-icon{font-size:34px;margin-bottom:10px}
-.hb-feature-name{color:var(--gold-l);font-size:17px;letter-spacing:2px;margin-bottom:6px}
-.hb-feature-desc{color:var(--text-m);font-size:13px;letter-spacing:1px}
+.hb-feature-icon{width:72px;height:72px;margin:0 auto 16px;border-radius:50%;background:linear-gradient(135deg,var(--navy-l),var(--navy-m));border:1.5px solid var(--gold);box-shadow:0 0 20px var(--glow);display:flex;align-items:center;justify-content:center;font-size:32px;transition:box-shadow .3s}
+.hb-feature-card:hover .hb-feature-icon{box-shadow:0 0 32px var(--glow),0 0 50px rgba(201,168,76,.25)}
+.hb-feature-name{color:var(--gold-l);font-size:22px;letter-spacing:2px;margin-bottom:8px;font-weight:500}
+.hb-feature-desc{color:var(--text-m);font-size:15px;letter-spacing:1px}
 @media(max-width:768px){.hb-feature-grid{grid-template-columns:repeat(2,1fr)}}
-.hb-subhead{text-align:center;color:var(--gold-l);font-family:'Noto Serif TC',serif;font-size:24px;letter-spacing:4px;margin:64px 0 28px;font-weight:500}
+.hb-subhead{text-align:center;color:var(--gold-l);font-size:24px;letter-spacing:4px;margin:64px 0 28px;font-weight:500}
 .hb-integration-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:900px;margin:0 auto 20px}
 .hb-integration-card{display:flex;gap:14px;align-items:flex-start;padding:20px;border:1px solid var(--border);background:rgba(255,255,255,.02)}
 .hb-integration-icon{font-size:26px;flex-shrink:0}
@@ -3158,7 +3159,7 @@ p, li { font-size: 26px !important; }
 @media(max-width:900px){.hb-who-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.hb-who-grid{grid-template-columns:1fr}}
 .hb-quote{max-width:680px;margin:56px auto;text-align:center;padding:32px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.hb-quote p{color:var(--gold-p);font-family:'Noto Serif TC',serif;font-size:16px;line-height:2;letter-spacing:1px}
+.hb-quote p{color:var(--gold-p);font-size:16px;line-height:2;letter-spacing:1px}
 .hb-quote-sub{margin-top:12px;color:var(--text-m)!important;font-size:13px!important}
 .hb-briefing-wrap{max-width:700px;margin:0 auto 40px}
 .hb-briefing-list{display:flex;flex-direction:column;gap:12px}
