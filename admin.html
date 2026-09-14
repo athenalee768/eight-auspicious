@@ -376,8 +376,8 @@
     { key: 'event_main_image', label: '活動主圖（現場體驗說明文字旁邊的圖片）' },
     { key: 'event_top_banner_image', label: '活動頁最上方橫幅主視覺（首頁滾動後第一張大圖）' },
     { key: 'event_secondary_image', label: '公益活動第二張圖片（品牌圖集・公益音樂下午茶海報）' },
-    { key: 'team_photo_image', label: '師資團隊合影（品牌圖集＋師資介紹頁，兩處同步更新）' },
-    { key: 'health_biz_poster_image', label: '健康輕創業主視覺海報（品牌圖集第三張＋健康輕創業頁面）' }
+    { key: 'team_photo_image', label: '師資團隊合影（精彩時刻）' },
+    { key: 'health_biz_poster_image', label: '聲息智養AI輕創業主視覺海報（精彩時刻第三張＋聲息智養AI輕創業頁面）' }
   ];
 
   function loadPhotos(){
@@ -455,11 +455,13 @@
         '<input type="file" accept="image/*">' +
         '<div class="photo-card-actions">' +
           '<button class="btn-small">上傳並更換</button>' +
+          '<button class="btn-small btn-danger del">清除（還原預設圖片）</button>' +
           '<span class="msg"></span>' +
         '</div>' +
       '</div>';
     var fileInput = card.querySelector('input[type=file]');
-    var btn = card.querySelector('.btn-small');
+    var btn = card.querySelector('.btn-small:not(.del)');
+    var delBtn = card.querySelector('.del');
     var msg = card.querySelector('.msg');
     var img = card.querySelector('img');
     btn.addEventListener('click', async function(){
@@ -479,6 +481,23 @@
         msg.textContent = '失敗：' + (e.message || e); msg.className = 'msg err';
       }
       btn.disabled = false;
+    });
+    delBtn.addEventListener('click', async function(){
+      if (!confirm('確定要清除這張圖片嗎？清除後網站會改回原本內建的預設圖片。')) return;
+      delBtn.disabled = true;
+      msg.textContent = '清除中...'; msg.className = 'msg';
+      try {
+        var upsertResult = await sb.from('site_content')
+          .upsert({ key: key, value: '', updated_at: new Date().toISOString() }, { onConflict: 'key' });
+        if (upsertResult.error) throw upsertResult.error;
+        img.src = '';
+        img.style.background = 'var(--navy)';
+        msg.textContent = '已清除，已還原預設圖片'; msg.className = 'msg ok';
+        setTimeout(function(){ msg.textContent=''; }, 2500);
+      } catch(e) {
+        msg.textContent = '失敗：' + (e.message || e); msg.className = 'msg err';
+      }
+      delBtn.disabled = false;
     });
     return card;
   }
