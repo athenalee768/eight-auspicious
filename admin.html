@@ -455,7 +455,7 @@
         '<input type="file" accept="image/*">' +
         '<div class="photo-card-actions">' +
           '<button class="btn-small">上傳並更換</button>' +
-          '<button class="btn-small btn-danger del">清除（還原預設圖片）</button>' +
+          '<button class="btn-small btn-danger del">刪除相片</button>' +
           '<span class="msg"></span>' +
         '</div>' +
       '</div>';
@@ -483,16 +483,19 @@
       btn.disabled = false;
     });
     delBtn.addEventListener('click', async function(){
-      if (!confirm('確定要清除這張圖片嗎？清除後網站會改回原本內建的預設圖片。')) return;
+      if (!confirm('確定要刪除這張圖片嗎？刪除後網站上這個位置會變成空白（不會還原成預設圖片）。')) return;
       delBtn.disabled = true;
-      msg.textContent = '清除中...'; msg.className = 'msg';
+      msg.textContent = '刪除中...'; msg.className = 'msg';
       try {
+        // 網站前台規則是「欄位留空就顯示內建預設圖片」，所以要讓圖片真的消失、
+        // 而不是被還原成預設圖片，這裡存一張透明的 1x1 小圖片來取代，效果等同空白。
+        var BLANK_IMG = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
         var upsertResult = await sb.from('site_content')
-          .upsert({ key: key, value: '', updated_at: new Date().toISOString() }, { onConflict: 'key' });
+          .upsert({ key: key, value: BLANK_IMG, updated_at: new Date().toISOString() }, { onConflict: 'key' });
         if (upsertResult.error) throw upsertResult.error;
-        img.src = '';
+        img.src = BLANK_IMG;
         img.style.background = 'var(--navy)';
-        msg.textContent = '已清除，已還原預設圖片'; msg.className = 'msg ok';
+        msg.textContent = '已刪除'; msg.className = 'msg ok';
         setTimeout(function(){ msg.textContent=''; }, 2500);
       } catch(e) {
         msg.textContent = '失敗：' + (e.message || e); msg.className = 'msg err';
