@@ -5443,7 +5443,7 @@ document.addEventListener('keydown', function(e) {
       grid.innerHTML = "";
       rows.forEach(function (t, idx) {
         var card = document.createElement("div");
-        card.className = "t3-card reveal rd" + ((idx % 3) + 1);
+        card.className = "t3-card reveal visible rd" + ((idx % 3) + 1);
 
         var photoWrap = document.createElement("div");
         photoWrap.className = "t3-photo-wrap";
