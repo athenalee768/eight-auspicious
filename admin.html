@@ -203,6 +203,22 @@
         <span class="msg" id="galleryAddMsg-health_biz" style="margin-left:12px"></span>
       </div>
       <div id="galleryPhotoList-health_biz"></div>
+
+      <div class="sub-h">最新活動 相片</div>
+      <div class="sub" style="margin-bottom:16px">在這裡新增的照片，會顯示在網站首頁「最新活動」區塊（位置在「關於我們」上方）。</div>
+      <div class="add-photo-box">
+        <div class="field">
+          <label for="newGalleryCaption-latest_events">照片說明文字（選填）</label>
+          <input type="text" id="newGalleryCaption-latest_events" placeholder="例如：11月靜心工作坊花絮">
+        </div>
+        <div class="field">
+          <label for="newGalleryFile-latest_events">選擇照片</label>
+          <input type="file" id="newGalleryFile-latest_events" accept="image/*">
+        </div>
+        <button class="btn" id="addGalleryBtn-latest_events">上傳並新增</button>
+        <span class="msg" id="galleryAddMsg-latest_events" style="margin-left:12px"></span>
+      </div>
+      <div id="galleryPhotoList-latest_events"></div>
     </div>
 
     <!-- 課程管理 -->
@@ -513,7 +529,7 @@
   }
 
   // -- 分類圖集：課程 / 師資 / 活動花絮 --
-  var GALLERY_CATEGORIES = ['course', 'teacher', 'highlight', 'health_biz'];
+  var GALLERY_CATEGORIES = ['course', 'teacher', 'highlight', 'health_biz', 'latest_events'];
   var galleryCache = { course: [], teacher: [], highlight: [], health_biz: [] };
 
   function loadGalleryPhotos(){
