@@ -106,6 +106,7 @@
       <div class="tab" data-tab="photos">相片管理</div>
       <div class="tab" data-tab="courses">課程管理</div>
       <div class="tab" data-tab="healthbiz">健康輕創業</div>
+      <div class="tab" data-tab="teachers">師資管理</div>
     </div>
 
     <!-- 內容編輯 -->
@@ -267,6 +268,36 @@
       <div id="briefingsList"></div>
     </div>
 
+    <!-- 師資管理 -->
+    <div class="panel" id="panel-teachers">
+      <div class="sub" style="margin-bottom:16px">
+        新增、編輯、刪除師資介紹頁上的老師卡片（照片＋姓名＋經歷）。
+      </div>
+      <div class="sub-h">新增師資</div>
+      <div class="add-photo-box">
+        <div class="field">
+          <label for="teacherNameCn">中文姓名</label>
+          <input type="text" id="teacherNameCn" placeholder="例如：小美老師">
+        </div>
+        <div class="field">
+          <label for="teacherNameEn">英文姓名（選填）</label>
+          <input type="text" id="teacherNameEn" placeholder="例如：Mei">
+        </div>
+        <div class="field">
+          <label for="teacherPhoto">照片</label>
+          <input type="file" id="teacherPhoto" accept="image/*">
+        </div>
+        <div class="field">
+          <label for="teacherCreds">經歷／專長（一行一條）</label>
+          <textarea id="teacherCreds" rows="5" placeholder="例如：&#10;尼泊爾國際頌缽療癒師&#10;英國天使靈氣學員"></textarea>
+        </div>
+        <button class="btn" id="addTeacherBtn">新增師資</button>
+        <span class="msg" id="teacherAddMsg" style="margin-left:12px"></span>
+      </div>
+      <div class="sub-h">目前師資</div>
+      <div id="teachersList"></div>
+    </div>
+
   </div>
 </div>
 
@@ -321,6 +352,7 @@
     loadPhotos();
     loadCourses();
     loadBriefingsAdmin();
+    loadTeachersAdmin();
   }
 
   // ---- Tabs ----
@@ -905,6 +937,144 @@
       } catch(e) {
         msg.textContent = '失敗：' + (e.message || e) +
           '（若尚未建立 briefings 資料表，需請開發者先在 Supabase 建立）';
+        msg.className = 'msg err';
+      }
+      btn.disabled = false;
+    });
+  }
+
+  // ---- 師資管理（讀寫 teachers 表：新增／編輯／刪除／排序） ----
+  var teachersCache = [];
+
+  async function loadTeachersAdmin(){
+    var list = document.getElementById('teachersList');
+    if (!list) return;
+    list.innerHTML = '載入中...';
+    var result = await sb.from('teachers')
+      .select('id,name_cn,name_en,photo_url,credentials,sort_order')
+      .order('sort_order', { ascending: true });
+    if (result.error) {
+      list.innerHTML = '尚未建立師資資料表，或載入失敗：' + result.error.message +
+        '<br>（需請開發者先在 Supabase 建立 teachers 資料表）';
+      return;
+    }
+    teachersCache = result.data || [];
+    list.innerHTML = '';
+    if (!teachersCache.length) {
+      list.innerHTML = '<div class="empty">尚未新增任何師資</div>';
+      return;
+    }
+    teachersCache.forEach(function(row, idx){
+      list.appendChild(renderTeacherCard(row, idx));
+    });
+  }
+
+  async function swapTeacherOrder(a, b){
+    var rowA = teachersCache[a], rowB = teachersCache[b];
+    await sb.from('teachers').update({ sort_order: rowB.sort_order }).eq('id', rowA.id);
+    await sb.from('teachers').update({ sort_order: rowA.sort_order }).eq('id', rowB.id);
+    loadTeachersAdmin();
+  }
+
+  function renderTeacherCard(row, idx){
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      (row.photo_url ? '<img src="' + row.photo_url + '" style="max-width:160px;border-radius:4px;margin-bottom:10px">' : '') +
+      '<div class="card-key">' + escapeHtml(row.name_cn || '') + '</div>' +
+      '<div class="field"><label>中文姓名</label><input type="text" class="tc-namecn-input" value="' + escapeHtml(row.name_cn || '') + '"></div>' +
+      '<div class="field"><label>英文姓名</label><input type="text" class="tc-nameen-input" value="' + escapeHtml(row.name_en || '') + '"></div>' +
+      '<div class="field"><label>更換照片（選填）</label><input type="file" class="tc-photo-input" accept="image/*"></div>' +
+      '<div class="field"><label>經歷／專長（一行一條）</label><textarea rows="5" class="tc-creds-input">' + escapeHtml(row.credentials || '') + '</textarea></div>' +
+      '<div class="card-actions">' +
+        '<span class="msg" style="margin-right:12px"></span>' +
+        '<button class="btn-small up"' + (idx === 0 ? ' disabled' : '') + '>上移</button>' +
+        '<button class="btn-small down"' + (idx === teachersCache.length - 1 ? ' disabled' : '') + '>下移</button>' +
+        '<button class="btn-small btn-danger del">刪除</button>&nbsp;' +
+        '<button class="btn save">儲存</button>' +
+      '</div>';
+
+    var msg = card.querySelector('.msg');
+
+    card.querySelector('.save').addEventListener('click', async function(){
+      var btn = this;
+      btn.disabled = true;
+      msg.textContent = '儲存中...'; msg.className = 'msg';
+      try {
+        var updates = {
+          name_cn: card.querySelector('.tc-namecn-input').value.trim(),
+          name_en: card.querySelector('.tc-nameen-input').value.trim(),
+          credentials: card.querySelector('.tc-creds-input').value
+        };
+        var photoFile = card.querySelector('.tc-photo-input').files[0];
+        if (photoFile) {
+          updates.photo_url = await uploadImageFile(photoFile, 'teachers');
+        }
+        var result = await sb.from('teachers').update(updates).eq('id', row.id);
+        if (result.error) throw result.error;
+        msg.textContent = '已儲存'; msg.className = 'msg ok';
+        setTimeout(function(){ msg.textContent=''; }, 2000);
+        loadTeachersAdmin();
+      } catch(e) {
+        msg.textContent = '失敗：' + (e.message || e); msg.className = 'msg err';
+      }
+      btn.disabled = false;
+    });
+
+    card.querySelector('.del').addEventListener('click', async function(){
+      if (!confirm('確定要刪除「' + (row.name_cn || '') + '」嗎？')) return;
+      var result = await sb.from('teachers').delete().eq('id', row.id);
+      if (result.error) { alert('刪除失敗：' + result.error.message); return; }
+      loadTeachersAdmin();
+    });
+
+    var upBtn = card.querySelector('.up');
+    var downBtn = card.querySelector('.down');
+    if (!upBtn.disabled) upBtn.addEventListener('click', function(){ swapTeacherOrder(idx, idx - 1); });
+    if (!downBtn.disabled) downBtn.addEventListener('click', function(){ swapTeacherOrder(idx, idx + 1); });
+
+    return card;
+  }
+
+  var addTeacherBtnEl = document.getElementById('addTeacherBtn');
+  if (addTeacherBtnEl) {
+    addTeacherBtnEl.addEventListener('click', async function(){
+      var msg = document.getElementById('teacherAddMsg');
+      var nameCnEl = document.getElementById('teacherNameCn');
+      var nameEnEl = document.getElementById('teacherNameEn');
+      var photoEl = document.getElementById('teacherPhoto');
+      var credsEl = document.getElementById('teacherCreds');
+
+      if (!nameCnEl.value.trim()) { msg.textContent = '請填寫中文姓名'; msg.className = 'msg err'; return; }
+
+      var btn = this;
+      btn.disabled = true;
+      msg.textContent = '新增中...'; msg.className = 'msg';
+      try {
+        var photoUrl = '';
+        var photoFile = photoEl.files[0];
+        if (photoFile) {
+          photoUrl = await uploadImageFile(photoFile, 'teachers');
+        }
+        var nextOrder = teachersCache.length
+          ? Math.max.apply(null, teachersCache.map(function(r){ return r.sort_order; })) + 1
+          : 0;
+        var payload = {
+          name_cn: nameCnEl.value.trim(),
+          name_en: nameEnEl.value.trim(),
+          photo_url: photoUrl,
+          credentials: credsEl.value,
+          sort_order: nextOrder
+        };
+        var result = await sb.from('teachers').insert([payload]);
+        if (result.error) throw result.error;
+        nameCnEl.value = ''; nameEnEl.value = ''; photoEl.value = ''; credsEl.value = '';
+        msg.textContent = '已新增'; msg.className = 'msg ok';
+        setTimeout(function(){ msg.textContent=''; }, 2000);
+        loadTeachersAdmin();
+      } catch(e) {
+        msg.textContent = '失敗：' + (e.message || e) +
+          '（若尚未建立 teachers 資料表，需請開發者先在 Supabase 建立）';
         msg.className = 'msg err';
       }
       btn.disabled = false;
