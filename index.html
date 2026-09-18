@@ -2522,14 +2522,17 @@ body.modal-open {
 }
 @media (max-width: 768px) {
   .teachers-3col {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
+    grid-template-columns: 1fr;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 32px;
   }
   .t3-photo-wrap { aspect-ratio: 3 / 4; }
   .t3-photo { object-position: center 15%; }
-  .t3-name-cn { font-size: 14px; letter-spacing: 2px; }
-  .t3-name-en { font-size: 11px; margin-bottom: 10px; }
-  .t3-creds li { font-size: 10px; gap: 6px; }
+  .t3-name-cn { font-size: 18px; letter-spacing: 3px; }
+  .t3-name-en { font-size: 13px; margin-bottom: 14px; }
+  .t3-creds li { font-size: 12px; gap: 8px; }
 }
 @media (max-width: 600px) {
   .teachers-3col { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
@@ -3079,6 +3082,12 @@ p, li { font-size: 26px !important; }
 #latest-events-gallery .extra-gallery-frame{aspect-ratio:auto}
 #latest-events-gallery .extra-gallery-img{height:auto;object-fit:contain}
 #latest-events-gallery .extra-gallery-caption{display:none}
+/* 熱門課程：建議最多放 4 張，卡片放大並置中，避免像素格空白 */
+#hot-course-gallery{
+  grid-template-columns:repeat(auto-fit,minmax(240px,360px));
+  justify-content:center;gap:24px;
+}
+#hot-course-gallery .extra-gallery-frame{aspect-ratio:3/4}
 /* 特定圖片欄位改為完全由後台上傳，這裡預留合理比例避免版面跑掉 */
 #brand_poster_image,#event-main-image{aspect-ratio:auto;object-fit:contain;background:var(--navy)}
 #team-photo-gallery,#health_biz_poster_image{aspect-ratio:3/4;object-fit:contain;background:var(--navy)}
@@ -3464,7 +3473,7 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
     </div>
 
     <div class="hb-poster-wrap reveal">
-      <div class="gallery-pair-frame" style="max-width:420px;margin:0 auto 28px;">
+      <div class="gallery-pair-frame" style="max-width:480px;margin:0 auto 28px;">
         <img id="health_biz_poster_image" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="AI智慧健康輕創業" loading="lazy">
       </div>
       <p id="hb-intro" class="hb-intro-text">「AI 智慧大數據」精準、追蹤、量化健康；「自然頻率療癒」頌缽、聲息、量子放鬆 —— 全新養生紀元，正式降臨。健康 × 科技 × 收入，開啟你的人生新可能。</p>
@@ -3758,7 +3767,7 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
       <div class="gline reveal rd3"></div>
     </div>
     <div id="teachers-grid" class="teachers-3col"></div>
-    <div class="gallery-pair-item reveal" style="max-width:420px;margin:36px auto 0;">
+    <div class="gallery-pair-item reveal" style="max-width:560px;margin:36px auto 0;">
       <div class="gallery-pair-frame">
         <img id="team-photo-gallery" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="八吉祥強棒師資團隊" loading="lazy">
       </div>
