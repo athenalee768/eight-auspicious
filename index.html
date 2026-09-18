@@ -5126,14 +5126,33 @@ document.addEventListener('keydown', function(e) {
     return (s || "").replace(/\s+/g, "");
   }
 
+  // ---- 雙語動態內容輔助函式：把中/英文字包成 i18n-zh / i18n-en 兩個 span，交給既有的
+  // body.lang-en CSS 規則決定顯示哪一個；英文留空時自動 fallback 顯示中文。 ----
+  function i18nHtml(zh, en) {
+    var zhSpan = document.createElement("span");
+    zhSpan.className = "i18n-zh";
+    zhSpan.textContent = zh || "";
+    var enSpan = document.createElement("span");
+    enSpan.className = "i18n-en";
+    enSpan.textContent = (en && en.trim()) ? en : (zh || "");
+    return zhSpan.outerHTML + enSpan.outerHTML;
+  }
+  function i18nText(zh, en) {
+    return (en && en.trim()) ? en : (zh || "");
+  }
+
   // ---- 1) 動態價格徽章：抓 courses + membership_plans，比對每個 modal 的標題 ----
   function applyPriceBadges(courses, plans) {
     var priceMap = {};
     (courses || []).forEach(function (c) {
-      priceMap[stripWs(c.name)] = c.price_note || (c.price ? ("$" + c.price) : "洽詢");
+      var zh = c.price_note || (c.price ? ("$" + c.price) : "洽詢");
+      var en = c.price_note_en || (c.price_note ? zh : (c.price ? ("$" + c.price) : "Contact us"));
+      priceMap[stripWs(c.name)] = { zh: zh, en: en };
     });
     (plans || []).forEach(function (p) {
-      priceMap[stripWs(p.name)] = p.price && p.price > 0 ? ("$" + p.price + " / 月") : "洽詢（請聯繫確認方案價格）";
+      var zh = p.price && p.price > 0 ? ("$" + p.price + " / 月") : "洽詢（請聯繫確認方案價格）";
+      var en = p.price && p.price > 0 ? ("$" + p.price + " / month") : "Contact us for pricing";
+      priceMap[stripWs(p.name)] = { zh: zh, en: en };
     });
 
     document.querySelectorAll(".modal-title").forEach(function (titleEl) {
@@ -5147,7 +5166,7 @@ document.addEventListener('keydown', function(e) {
         badge.className = "modal-price-badge";
         header.appendChild(badge);
       }
-      badge.textContent = "方案價格：" + priceMap[key];
+      badge.innerHTML = i18nHtml("方案價格：" + priceMap[key].zh, "Plan Price: " + priceMap[key].en);
     });
   }
 
@@ -5155,55 +5174,52 @@ document.addEventListener('keydown', function(e) {
   function populateCourseSelect(courses, plans) {
     var select = document.getElementById("reg-course");
     if (!select) return;
+    var curLang = document.body.classList.contains("lang-en") ? "en" : "zh";
     (courses || []).forEach(function (c) {
       var opt = document.createElement("option");
       opt.value = "course:" + c.id;
-      opt.textContent = c.category ? (c.category + " - " + c.name) : c.name;
+      var displayName = curLang === "en" ? i18nText(c.name, c.name_en) : c.name;
+      opt.textContent = c.category ? (c.category + " - " + displayName) : displayName;
       select.appendChild(opt);
     });
     (plans || []).forEach(function (p) {
       var opt = document.createElement("option");
       opt.value = "plan:" + p.id;
-      opt.textContent = "會員專屬方案 - " + p.name;
+      var planLabel = curLang === "en" ? "Membership Plan" : "會員專屬方案";
+      opt.textContent = planLabel + " - " + i18nText(p.name, p.name_en);
       select.appendChild(opt);
     });
   }
 
   // ---- 2b) 課程管理：換主圖 + 改詳情文字（image_url / description / features_text）----
-  function buildFeaturesSection(featuresText) {
+  function buildFeaturesSection(featuresText, featuresTextEn) {
     var lis = featuresText.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
     if (!lis.length) return "";
-    var html = '<div class="modal-section"><div class="modal-section-title">課程特色</div><ul class="modal-features">';
-    lis.forEach(function (li) {
-      var span = document.createElement("span");
-      span.textContent = li;
-      html += "<li>" + span.innerHTML + "</li>";
+    var lisEn = (featuresTextEn || "").split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+    var html = '<div class="modal-section"><div class="modal-section-title">' + i18nHtml("課程特色", "Course Highlights") + '</div><ul class="modal-features">';
+    lis.forEach(function (li, i) {
+      html += "<li>" + i18nHtml(li, lisEn[i]) + "</li>";
     });
     html += "</ul></div>";
     return html;
   }
 
-  function buildDescriptionSection(description) {
-    var p = document.createElement("p");
-    p.textContent = description;
-    return '<div class="modal-section"><div class="modal-section-title">課程說明</div>' + p.outerHTML + "</div>";
+  function buildDescriptionSection(description, descriptionEn) {
+    return '<div class="modal-section"><div class="modal-section-title">' + i18nHtml("課程說明", "Description") + '</div><p>' + i18nHtml(description, descriptionEn) + '</p></div>';
   }
 
   // ---- 療癒旅行：即將舉辦 / 曾經舉辦，後台可新增刪除 ----
-  function buildTravelDescriptionSection(description) {
-    var p = document.createElement("p");
-    p.textContent = description;
-    return '<div class="modal-section"><div class="modal-section-title">行程介紹</div>' + p.outerHTML + "</div>";
+  function buildTravelDescriptionSection(description, descriptionEn) {
+    return '<div class="modal-section"><div class="modal-section-title">' + i18nHtml("行程介紹", "Overview") + '</div><p>' + i18nHtml(description, descriptionEn) + '</p></div>';
   }
 
-  function buildTravelFeaturesSection(featuresText) {
+  function buildTravelFeaturesSection(featuresText, featuresTextEn) {
     var lis = featuresText.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
     if (!lis.length) return "";
-    var html = '<div class="modal-section"><div class="modal-section-title">行程特色</div><ul class="modal-features">';
-    lis.forEach(function (li) {
-      var span = document.createElement("span");
-      span.textContent = li;
-      html += "<li>" + span.innerHTML + "</li>";
+    var lisEn = (featuresTextEn || "").split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+    var html = '<div class="modal-section"><div class="modal-section-title">' + i18nHtml("行程特色", "Highlights") + '</div><ul class="modal-features">';
+    lis.forEach(function (li, i) {
+      html += "<li>" + i18nHtml(li, lisEn[i]) + "</li>";
     });
     html += "</ul></div>";
     return html;
@@ -5238,10 +5254,10 @@ document.addEventListener('keydown', function(e) {
     lineA.className = "pci-btn pci-btn-line";
     lineA.target = "_blank";
     lineA.rel = "noopener";
-    lineA.textContent = "💬 LINE 洽詢";
+    lineA.innerHTML = "💬 " + i18nHtml("LINE 洽詢", "LINE Inquiry");
     var detailBtn = document.createElement("button");
     detailBtn.className = "pci-btn pci-btn-detail";
-    detailBtn.textContent = "詳 情";
+    detailBtn.innerHTML = i18nHtml("詳 情", "Details");
     detailBtn.addEventListener("click", function () { window.openModal(modalId); });
     actionEl.appendChild(lineA);
     actionEl.appendChild(detailBtn);
@@ -5286,13 +5302,13 @@ document.addEventListener('keydown', function(e) {
     var modalTitleEl = document.createElement("h3");
     modalTitleEl.className = "modal-title";
     modalTitleEl.id = modalId + "-title";
-    modalTitleEl.textContent = row.title || "";
+    modalTitleEl.innerHTML = i18nHtml(row.title || "", row.title_en);
     modalHeader.appendChild(modalBadge);
     modalHeader.appendChild(modalTitleEl);
     if (row.subtitle) {
       var modalSub = document.createElement("p");
       modalSub.className = "modal-sub";
-      modalSub.textContent = row.subtitle;
+      modalSub.innerHTML = i18nHtml(row.subtitle, row.subtitle_en);
       modalHeader.appendChild(modalSub);
     }
     modalBox.appendChild(modalHeader);
@@ -5300,8 +5316,8 @@ document.addEventListener('keydown', function(e) {
     var modalBody = document.createElement("div");
     modalBody.className = "modal-body";
     var bodyHtml = "";
-    if (row.description) bodyHtml += buildTravelDescriptionSection(row.description);
-    if (row.features_text) bodyHtml += buildTravelFeaturesSection(row.features_text);
+    if (row.description) bodyHtml += buildTravelDescriptionSection(row.description, row.description_en);
+    if (row.features_text) bodyHtml += buildTravelFeaturesSection(row.features_text, row.features_text_en);
     modalBody.innerHTML = bodyHtml;
     modalBox.appendChild(modalBody);
 
@@ -5311,12 +5327,12 @@ document.addEventListener('keydown', function(e) {
     ctaLine.href = row.line_link || "https://lin.ee/Q8XKTw6";
     ctaLine.className = "modal-btn-line";
     ctaLine.target = "_blank";
-    ctaLine.textContent = "💬 加入 LINE 洽詢";
+    ctaLine.innerHTML = "💬 " + i18nHtml("加入 LINE 洽詢", "Join Official LINE");
     var ctaFb = document.createElement("a");
     ctaFb.href = "https://www.facebook.com/share/1CU7UXaZgC/?mibextid=wwXIfr";
     ctaFb.className = "modal-btn-inquiry";
     ctaFb.target = "_blank";
-    ctaFb.textContent = "📘 Facebook";
+    ctaFb.innerHTML = "📘 Facebook";
     ctaRow.appendChild(ctaLine);
     ctaRow.appendChild(ctaFb);
     modalBox.appendChild(ctaRow);
@@ -5333,7 +5349,7 @@ document.addEventListener('keydown', function(e) {
     try {
       var res = await sbClient
         .from("travels")
-        .select("id,title,subtitle,image_url,description,features_text,status,line_link,sort_order")
+        .select("id,title,title_en,subtitle,subtitle_en,image_url,description,description_en,features_text,features_text_en,status,line_link,sort_order")
         .order("sort_order", { ascending: true });
       if (res.error) throw res.error;
       var rows = res.data || [];
@@ -5396,8 +5412,8 @@ document.addEventListener('keydown', function(e) {
         var body = document.querySelector("#" + modalId + " .modal-body");
         if (body) {
           var newHtml = "";
-          if (row.description) newHtml += buildDescriptionSection(row.description);
-          if (row.features_text) newHtml += buildFeaturesSection(row.features_text);
+          if (row.description) newHtml += buildDescriptionSection(row.description, row.description_en);
+          if (row.features_text) newHtml += buildFeaturesSection(row.features_text, row.features_text_en);
           body.querySelectorAll(".modal-section").forEach(function (el) { el.remove(); });
           var note = body.querySelector(".modal-note");
           if (note) {
@@ -5422,8 +5438,8 @@ document.addEventListener('keydown', function(e) {
 
   async function loadPricingData() {
     try {
-      var coursesRes = await sbClient.from("courses").select("id,name,category,price,price_note,image_url,description,features_text").eq("is_active", true).order("sort_order");
-      var plansRes = await sbClient.from("membership_plans").select("id,name,price,image_url,description,features_text").eq("is_active", true).order("sort_order");
+      var coursesRes = await sbClient.from("courses").select("id,name,name_en,category,price,price_note,price_note_en,image_url,description,description_en,features_text,features_text_en").eq("is_active", true).order("sort_order");
+      var plansRes = await sbClient.from("membership_plans").select("id,name,name_en,price,image_url,description,description_en,features_text,features_text_en").eq("is_active", true).order("sort_order");
       if (coursesRes.error) throw coursesRes.error;
       if (plansRes.error) throw plansRes.error;
       var courses = coursesRes.data || [];
@@ -5510,7 +5526,7 @@ document.addEventListener('keydown', function(e) {
       iconEl.textContent = "🌟";
       var titleEl = document.createElement("span");
       titleEl.className = "plan-series-title";
-      titleEl.textContent = cat.split("").join(" "); // 比照原本標題逐字加空白的排版風格
+      titleEl.innerHTML = i18nHtml(cat.split("").join(" "), cat); // 比照原本標題逐字加空白的排版風格
       headerEl.appendChild(iconEl);
       headerEl.appendChild(titleEl);
       seriesEl.appendChild(headerEl);
@@ -5546,14 +5562,17 @@ document.addEventListener('keydown', function(e) {
         captionEl.className = "pci-extra-caption";
         var nameEl = document.createElement("div");
         nameEl.className = "pci-extra-name";
-        nameEl.textContent = row.name || "";
+        nameEl.innerHTML = i18nHtml(row.name || "", row.name_en);
         captionEl.appendChild(nameEl);
         var priceText = item.isPlan
           ? (row.price && row.price > 0 ? ("$" + row.price + " / 月") : "洽詢")
           : (row.price_note || (row.price ? ("$" + row.price) : "洽詢"));
+        var priceTextEn = item.isPlan
+          ? (row.price && row.price > 0 ? ("$" + row.price + " / month") : "Contact us")
+          : (row.price_note_en || (row.price_note ? priceText : (row.price ? ("$" + row.price) : "Contact us")));
         var priceEl = document.createElement("div");
         priceEl.className = "pci-extra-price";
-        priceEl.textContent = priceText;
+        priceEl.innerHTML = i18nHtml(priceText, priceTextEn);
         captionEl.appendChild(priceEl);
         cardEl.appendChild(captionEl);
 
@@ -5564,10 +5583,10 @@ document.addEventListener('keydown', function(e) {
         lineA.className = "pci-btn pci-btn-line";
         lineA.target = "_blank";
         lineA.rel = "noopener";
-        lineA.textContent = "💬 LINE 洽詢";
+        lineA.innerHTML = "💬 " + i18nHtml("LINE 洽詢", "LINE Inquiry");
         var detailBtn = document.createElement("button");
         detailBtn.className = "pci-btn pci-btn-detail";
-        detailBtn.textContent = "詳 情";
+        detailBtn.innerHTML = i18nHtml("詳 情", "Details");
         detailBtn.addEventListener("click", function () { window.openModal(modalId); });
         actionEl.appendChild(lineA);
         actionEl.appendChild(detailBtn);
@@ -5612,10 +5631,10 @@ document.addEventListener('keydown', function(e) {
         var modalTitleEl = document.createElement("div");
         modalTitleEl.className = "modal-title";
         modalTitleEl.id = modalId + "-title";
-        modalTitleEl.textContent = row.name || "";
+        modalTitleEl.innerHTML = i18nHtml(row.name || "", row.name_en);
         var modalSub = document.createElement("div");
         modalSub.className = "modal-sub";
-        modalSub.textContent = priceText;
+        modalSub.innerHTML = i18nHtml(priceText, priceTextEn);
         modalHeader.appendChild(modalNum);
         modalHeader.appendChild(modalTitleEl);
         modalHeader.appendChild(modalSub);
@@ -5624,8 +5643,8 @@ document.addEventListener('keydown', function(e) {
         var modalBody = document.createElement("div");
         modalBody.className = "modal-body";
         var bodyHtml = "";
-        if (row.description) bodyHtml += buildDescriptionSection(row.description);
-        if (row.features_text) bodyHtml += buildFeaturesSection(row.features_text);
+        if (row.description) bodyHtml += buildDescriptionSection(row.description, row.description_en);
+        if (row.features_text) bodyHtml += buildFeaturesSection(row.features_text, row.features_text_en);
         modalBody.innerHTML = bodyHtml;
         modalBox.appendChild(modalBody);
 
@@ -5635,12 +5654,12 @@ document.addEventListener('keydown', function(e) {
         ctaLine.href = "https://lin.ee/Q8XKTw6";
         ctaLine.className = "modal-btn-line";
         ctaLine.target = "_blank";
-        ctaLine.textContent = "💬 加入 LINE 洽詢";
+        ctaLine.innerHTML = "💬 " + i18nHtml("加入 LINE 洽詢", "Join Official LINE");
         var ctaFb = document.createElement("a");
         ctaFb.href = "https://www.facebook.com/share/1CU7UXaZgC/?mibextid=wwXIfr";
         ctaFb.className = "modal-btn-inquiry";
         ctaFb.target = "_blank";
-        ctaFb.textContent = "📘 Facebook";
+        ctaFb.innerHTML = "📘 Facebook";
         ctaRow.appendChild(ctaLine);
         ctaRow.appendChild(ctaFb);
         modalBox.appendChild(ctaRow);
@@ -5835,20 +5854,25 @@ document.addEventListener('keydown', function(e) {
     try {
       var res = await sbClient.from("site_content").select("key,value");
       if (res.error) throw res.error;
-      (res.data || []).forEach(function (row) {
-        if (!row.value) return; // 留空則保留原本靜態內容
-        var map = SITE_CONTENT_MAP[row.key];
+      var byKey = {};
+      (res.data || []).forEach(function (row) { byKey[row.key] = row.value; });
+      Object.keys(byKey).forEach(function (key) {
+        if (key.slice(-3) === "_en") return; // 英文版欄位只當作對照資料，不直接當一般欄位處理
+        var value = byKey[key];
+        if (!value) return; // 留空則保留原本靜態內容
+        var valueEn = byKey[key + "_en"] || "";
+        var map = SITE_CONTENT_MAP[key];
         if (!map) return; // 尚未對應到前台元素的欄位，先略過
         var targets = Array.isArray(map) ? map : [map];
         targets.forEach(function (t) {
           var el = document.getElementById(t.id);
           if (!el) return;
           if (t.type === "src") {
-            el.src = row.value;
+            el.src = value;
           } else if (t.type === "href") {
-            el.href = row.value;
+            el.href = value;
           } else {
-            el.innerHTML = row.value.replace(/\n/g, "<br>");
+            el.innerHTML = i18nHtml(value, valueEn).replace(/\n/g, "<br>");
           }
         });
       });
@@ -5873,7 +5897,7 @@ document.addEventListener('keydown', function(e) {
       var todayStr = new Date().toISOString().slice(0, 10);
       var res = await sbClient
         .from("briefings")
-        .select("id,title,event_date,event_time,location,note,link,sort_order")
+        .select("id,title,title_en,event_date,event_time,location,location_en,note,note_en,link,sort_order")
         .gte("event_date", todayStr)
         .order("event_date", { ascending: true })
         .order("sort_order", { ascending: true });
@@ -5889,19 +5913,19 @@ document.addEventListener('keydown', function(e) {
         dateEl.textContent = formatBriefingDate(r.event_date) + (r.event_time ? " " + r.event_time : "");
         var titleEl = document.createElement("span");
         titleEl.className = "hb-briefing-title";
-        titleEl.textContent = r.title || "健康輕創業說明會";
+        titleEl.innerHTML = i18nHtml(r.title || "健康輕創業說明會", r.title_en || "Wellness Business Info Session");
         item.appendChild(dateEl);
         item.appendChild(titleEl);
         if (r.location) {
           var locEl = document.createElement("span");
           locEl.className = "hb-briefing-loc";
-          locEl.textContent = "📍 " + r.location;
+          locEl.innerHTML = "📍 " + i18nHtml(r.location, r.location_en);
           item.appendChild(locEl);
         }
         if (r.note) {
           var noteEl = document.createElement("div");
           noteEl.className = "hb-briefing-note";
-          noteEl.textContent = r.note;
+          noteEl.innerHTML = i18nHtml(r.note, r.note_en);
           item.appendChild(noteEl);
         }
         if (r.link) {
@@ -5922,7 +5946,7 @@ document.addEventListener('keydown', function(e) {
     try {
       var res = await sbClient
         .from("teachers")
-        .select("id,name_cn,name_en,photo_url,credentials,sort_order")
+        .select("id,name_cn,name_en,photo_url,credentials,credentials_en,sort_order")
         .order("sort_order", { ascending: true });
       if (res.error) throw res.error;
       var rows = res.data || [];
@@ -5964,9 +5988,11 @@ document.addEventListener('keydown', function(e) {
 
         var ul = document.createElement("ul");
         ul.className = "t3-creds";
-        (t.credentials || "").split("\n").map(function (s) { return s.trim(); }).filter(Boolean).forEach(function (line) {
+        var credLines = (t.credentials || "").split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+        var credLinesEn = (t.credentials_en || "").split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+        credLines.forEach(function (line, i) {
           var li = document.createElement("li");
-          li.textContent = line;
+          li.innerHTML = i18nHtml(line, credLinesEn[i]);
           ul.appendChild(li);
         });
         card.appendChild(ul);

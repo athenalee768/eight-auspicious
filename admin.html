@@ -263,12 +263,20 @@
           <input type="text" id="newCourseName" placeholder="例如：頌缽初階體驗課">
         </div>
         <div class="field">
+          <label for="newCourseNameEn">英文名稱（選填）</label>
+          <input type="text" id="newCourseNameEn" placeholder="留空則英文版也顯示中文名稱">
+        </div>
+        <div class="field">
           <label for="newCoursePrice">定價（選填，數字）</label>
           <input type="number" id="newCoursePrice" placeholder="例如：1800">
         </div>
         <div class="field">
           <label for="newCoursePriceNote">價格顯示文字（選填，一般課程適用，例如「$1800 / 堂」或「洽詢」）</label>
           <input type="text" id="newCoursePriceNote" placeholder="留空則自動依定價顯示">
+        </div>
+        <div class="field">
+          <label for="newCoursePriceNoteEn">價格顯示文字（英文，選填）</label>
+          <input type="text" id="newCoursePriceNoteEn" placeholder="留空則英文版也顯示中文價格文字">
         </div>
         <div class="field">
           <label for="newCourseImage">主圖（選填）</label>
@@ -279,8 +287,16 @@
           <textarea id="newCourseDesc" rows="2" placeholder="課程/方案說明"></textarea>
         </div>
         <div class="field">
+          <label for="newCourseDescEn">說明文字（英文，選填）</label>
+          <textarea id="newCourseDescEn" rows="2" placeholder="留空則英文版也顯示中文說明"></textarea>
+        </div>
+        <div class="field">
           <label for="newCourseFeatures">特色列表（選填，一行一項）</label>
           <textarea id="newCourseFeatures" rows="4" placeholder="例如：&#10;適合初學者&#10;60分鐘體驗"></textarea>
+        </div>
+        <div class="field">
+          <label for="newCourseFeaturesEn">特色列表（英文，選填，一行一項）</label>
+          <textarea id="newCourseFeaturesEn" rows="4" placeholder="留空則英文版也顯示中文特色列表"></textarea>
         </div>
         <button class="btn" id="addCourseBtn">新增課程</button>
         <span class="msg" id="courseAddMsg" style="margin-left:12px"></span>
@@ -302,6 +318,10 @@
           <input type="text" id="hbTitle" placeholder="例如：健康輕創業招商說明會">
         </div>
         <div class="field">
+          <label for="hbTitleEn">場次標題（英文，選填）</label>
+          <input type="text" id="hbTitleEn" placeholder="留空則英文版也顯示中文標題">
+        </div>
+        <div class="field">
           <label for="hbDate">日期</label>
           <input type="date" id="hbDate">
         </div>
@@ -314,8 +334,16 @@
           <input type="text" id="hbLocation" placeholder="例如：台北市信義區○○會館">
         </div>
         <div class="field">
+          <label for="hbLocationEn">地點（英文，選填）</label>
+          <input type="text" id="hbLocationEn" placeholder="留空則英文版也顯示中文地點">
+        </div>
+        <div class="field">
           <label for="hbNote">備註（選填）</label>
           <textarea id="hbNote" rows="2" placeholder="例如：需事先報名，名額有限"></textarea>
+        </div>
+        <div class="field">
+          <label for="hbNoteEn">備註（英文，選填）</label>
+          <textarea id="hbNoteEn" rows="2" placeholder="留空則英文版也顯示中文備註"></textarea>
         </div>
         <div class="field">
           <label for="hbLink">報名連結（選填）</label>
@@ -340,8 +368,16 @@
           <input type="text" id="newTravelUpcomingTitle" placeholder="例如：香港海洋療癒之旅">
         </div>
         <div class="field">
+          <label for="newTravelUpcomingTitleEn">行程名稱（英文，選填）</label>
+          <input type="text" id="newTravelUpcomingTitleEn" placeholder="留空則英文版也顯示中文名稱">
+        </div>
+        <div class="field">
           <label for="newTravelUpcomingSubtitle">副標題（選填）</label>
           <input type="text" id="newTravelUpcomingSubtitle" placeholder="例如：把旅行變成一場身心靈重啟之旅">
+        </div>
+        <div class="field">
+          <label for="newTravelUpcomingSubtitleEn">副標題（英文，選填）</label>
+          <input type="text" id="newTravelUpcomingSubtitleEn" placeholder="留空則英文版也顯示中文副標題">
         </div>
         <div class="field">
           <label for="newTravelUpcomingImage">主圖（選填）</label>
@@ -352,8 +388,16 @@
           <textarea id="newTravelUpcomingDesc" rows="3" placeholder="行程說明文字"></textarea>
         </div>
         <div class="field">
+          <label for="newTravelUpcomingDescEn">行程介紹（英文，選填）</label>
+          <textarea id="newTravelUpcomingDescEn" rows="3" placeholder="留空則英文版也顯示中文介紹"></textarea>
+        </div>
+        <div class="field">
           <label for="newTravelUpcomingFeatures">行程特色（選填，一行一項）</label>
           <textarea id="newTravelUpcomingFeatures" rows="4" placeholder="例如：&#10;頌缽冥想體驗&#10;在地文化工作坊"></textarea>
+        </div>
+        <div class="field">
+          <label for="newTravelUpcomingFeaturesEn">行程特色（英文，選填，一行一項）</label>
+          <textarea id="newTravelUpcomingFeaturesEn" rows="4" placeholder="留空則英文版也顯示中文特色列表"></textarea>
         </div>
         <div class="field">
           <label for="newTravelUpcomingLink">報名／洽詢連結（選填，留空則預設 LINE 官方帳號）</label>
@@ -370,8 +414,16 @@
           <input type="text" id="newTravelPastTitle" placeholder="例如：花東頌缽療癒之旅">
         </div>
         <div class="field">
+          <label for="newTravelPastTitleEn">行程名稱（英文，選填）</label>
+          <input type="text" id="newTravelPastTitleEn" placeholder="留空則英文版也顯示中文名稱">
+        </div>
+        <div class="field">
           <label for="newTravelPastSubtitle">副標題（選填）</label>
           <input type="text" id="newTravelPastSubtitle" placeholder="例如：2025年10月 · 花蓮">
+        </div>
+        <div class="field">
+          <label for="newTravelPastSubtitleEn">副標題（英文，選填）</label>
+          <input type="text" id="newTravelPastSubtitleEn" placeholder="留空則英文版也顯示中文副標題">
         </div>
         <div class="field">
           <label for="newTravelPastImage">主圖（選填）</label>
@@ -382,8 +434,16 @@
           <textarea id="newTravelPastDesc" rows="3" placeholder="行程回顧文字"></textarea>
         </div>
         <div class="field">
+          <label for="newTravelPastDescEn">行程介紹（英文，選填）</label>
+          <textarea id="newTravelPastDescEn" rows="3" placeholder="留空則英文版也顯示中文回顧文字"></textarea>
+        </div>
+        <div class="field">
           <label for="newTravelPastFeatures">行程特色（選填，一行一項）</label>
           <textarea id="newTravelPastFeatures" rows="4" placeholder="例如：&#10;頌缽冥想體驗&#10;在地文化工作坊"></textarea>
+        </div>
+        <div class="field">
+          <label for="newTravelPastFeaturesEn">行程特色（英文，選填，一行一項）</label>
+          <textarea id="newTravelPastFeaturesEn" rows="4" placeholder="留空則英文版也顯示中文特色列表"></textarea>
         </div>
         <div class="field">
           <label for="newTravelPastLink">報名／洽詢連結（選填，留空則預設 LINE 官方帳號）</label>
@@ -418,6 +478,10 @@
         <div class="field">
           <label for="teacherCreds">經歷／專長（一行一條）</label>
           <textarea id="teacherCreds" rows="5" placeholder="例如：&#10;尼泊爾國際頌缽療癒師&#10;英國天使靈氣學員"></textarea>
+        </div>
+        <div class="field">
+          <label for="teacherCredsEn">經歷／專長（英文，選填，一行一條）</label>
+          <textarea id="teacherCredsEn" rows="5" placeholder="留空則英文版也顯示中文經歷列表"></textarea>
         </div>
         <button class="btn" id="addTeacherBtn">新增師資</button>
         <span class="msg" id="teacherAddMsg" style="margin-left:12px"></span>
@@ -877,10 +941,10 @@
     var list = document.getElementById('coursesList');
     list.innerHTML = '載入中...';
     var coursesRes = await sb.from('courses')
-      .select('id,name,category,image_url,description,features_text,sort_order')
+      .select('id,name,name_en,category,image_url,description,description_en,features_text,features_text_en,price_note,price_note_en,sort_order')
       .order('sort_order', { ascending: true });
     var plansRes = await sb.from('membership_plans')
-      .select('id,name,image_url,description,features_text,sort_order')
+      .select('id,name,name_en,image_url,description,description_en,features_text,features_text_en,sort_order')
       .order('sort_order', { ascending: true });
     if (coursesRes.error) { list.innerHTML = '載入失敗：' + coursesRes.error.message; return; }
     if (plansRes.error) { list.innerHTML = '載入失敗：' + plansRes.error.message; return; }
@@ -942,13 +1006,31 @@
         '<div class="photo-card-key">' + escapeHtml(row.name) + '</div>' +
         '<input type="file" accept="image/*" class="course-img-input">' +
         '<div class="field" style="margin-top:8px">' +
+          '<label>英文名稱（選填）</label>' +
+          '<input type="text" class="course-nameen-input" value="' + (row.name_en ? escapeHtml(row.name_en) : '') + '" placeholder="留空則英文版也顯示中文名稱">' +
+        '</div>' +
+        '<div class="field" style="margin-top:8px">' +
           '<label>說明文字</label>' +
           '<textarea rows="2" class="course-desc-input" placeholder="課程/方案說明（留空則維持原本文字）">' + (row.description ? escapeHtml(row.description) : '') + '</textarea>' +
+        '</div>' +
+        '<div class="field" style="margin-top:8px">' +
+          '<label>說明文字（英文，選填）</label>' +
+          '<textarea rows="2" class="course-descen-input" placeholder="留空則英文版也顯示中文說明">' + (row.description_en ? escapeHtml(row.description_en) : '') + '</textarea>' +
         '</div>' +
         '<div class="field" style="margin-top:8px">' +
           '<label>特色列表（一行一項）</label>' +
           '<textarea rows="4" class="course-features-input" placeholder="留空則維持原本特色列表">' + (row.features_text ? escapeHtml(row.features_text) : '') + '</textarea>' +
         '</div>' +
+        '<div class="field" style="margin-top:8px">' +
+          '<label>特色列表（英文，選填，一行一項）</label>' +
+          '<textarea rows="4" class="course-featuresen-input" placeholder="留空則英文版也顯示中文特色列表">' + (row.features_text_en ? escapeHtml(row.features_text_en) : '') + '</textarea>' +
+        '</div>' +
+        (row.table === 'courses' ?
+          '<div class="field" style="margin-top:8px">' +
+            '<label>價格顯示文字（英文，選填）</label>' +
+            '<input type="text" class="course-pricenoteen-input" value="' + (row.price_note_en ? escapeHtml(row.price_note_en) : '') + '" placeholder="留空則英文版也顯示中文價格文字">' +
+          '</div>'
+        : '') +
         '<div class="photo-card-actions">' +
           '<button class="btn-small save">儲存</button>' +
           '<button class="btn-small btn-danger del">刪除課程</button>' +
@@ -959,6 +1041,10 @@
     var fileInput = card.querySelector('.course-img-input');
     var descInput = card.querySelector('.course-desc-input');
     var featInput = card.querySelector('.course-features-input');
+    var nameEnInput = card.querySelector('.course-nameen-input');
+    var descEnInput = card.querySelector('.course-descen-input');
+    var featEnInput = card.querySelector('.course-featuresen-input');
+    var priceNoteEnInput = card.querySelector('.course-pricenoteen-input');
     var msg = card.querySelector('.msg');
 
     card.querySelector('.del').addEventListener('click', async function(){
@@ -983,8 +1069,14 @@
       try {
         var updates = {
           description: descInput.value.trim() || null,
-          features_text: featInput.value.trim() || null
+          features_text: featInput.value.trim() || null,
+          name_en: nameEnInput.value.trim() || null,
+          description_en: descEnInput.value.trim() || null,
+          features_text_en: featEnInput.value.trim() || null
         };
+        if (priceNoteEnInput) {
+          updates.price_note_en = priceNoteEnInput.value.trim() || null;
+        }
         if (fileInput.files[0]) {
           updates.image_url = await uploadImageFile(fileInput.files[0], 'course-detail');
         }
@@ -1030,6 +1122,10 @@
       var imageEl = document.getElementById('newCourseImage');
       var descEl = document.getElementById('newCourseDesc');
       var featuresEl = document.getElementById('newCourseFeatures');
+      var nameEnEl = document.getElementById('newCourseNameEn');
+      var descEnEl = document.getElementById('newCourseDescEn');
+      var featuresEnEl = document.getElementById('newCourseFeaturesEn');
+      var priceNoteEnEl = document.getElementById('newCoursePriceNoteEn');
 
       var name = nameEl.value.trim();
       if (!name) { msg.textContent = '請填寫名稱'; msg.className = 'msg err'; return; }
@@ -1073,11 +1169,15 @@
           features_text: featuresEl.value.trim() || null,
           price: priceVal,
           sort_order: nextOrder,
-          is_active: true
+          is_active: true,
+          name_en: nameEnEl.value.trim() || null,
+          description_en: descEnEl.value.trim() || null,
+          features_text_en: featuresEnEl.value.trim() || null
         };
         if (!isPlan) {
           payload.category = category;
           payload.price_note = priceNoteEl.value.trim() || null;
+          payload.price_note_en = priceNoteEnEl.value.trim() || null;
         }
 
         var result = await sb.from(table).insert([payload]);
@@ -1085,6 +1185,7 @@
 
         nameEl.value = ''; priceEl.value = ''; priceNoteEl.value = '';
         imageEl.value = ''; descEl.value = ''; featuresEl.value = '';
+        nameEnEl.value = ''; descEnEl.value = ''; featuresEnEl.value = ''; priceNoteEnEl.value = '';
         newCourseCategoryCustomEl.value = ''; newCourseCategoryCustomEl.style.display = 'none';
         if (imageUploadFailed) {
           msg.textContent = '已新增課程，但圖片上傳失敗，請稍後在下方「目前課程／方案」找到這筆課程重新上傳圖片';
@@ -1109,7 +1210,7 @@
     if (!list) return;
     list.innerHTML = '載入中...';
     var result = await sb.from('briefings')
-      .select('id,title,event_date,event_time,location,note,link,sort_order')
+      .select('id,title,title_en,event_date,event_time,location,location_en,note,note_en,link,sort_order')
       .order('event_date', { ascending: true });
     if (result.error) {
       list.innerHTML = '尚未建立說明會資料表，或載入失敗：' + result.error.message +
@@ -1133,10 +1234,13 @@
     card.innerHTML =
       '<div class="card-key">' + escapeHtml(row.title || '健康輕創業說明會') + '</div>' +
       '<div class="field"><label>場次標題</label><input type="text" class="hb-title-input" value="' + escapeHtml(row.title || '') + '"></div>' +
+      '<div class="field"><label>場次標題（英文，選填）</label><input type="text" class="hb-titleen-input" value="' + escapeHtml(row.title_en || '') + '" placeholder="留空則英文版也顯示中文標題"></div>' +
       '<div class="field"><label>日期</label><input type="date" class="hb-date-input" value="' + (row.event_date || '') + '"></div>' +
       '<div class="field"><label>時間</label><input type="text" class="hb-time-input" value="' + escapeHtml(row.event_time || '') + '"></div>' +
       '<div class="field"><label>地點</label><input type="text" class="hb-location-input" value="' + escapeHtml(row.location || '') + '"></div>' +
+      '<div class="field"><label>地點（英文，選填）</label><input type="text" class="hb-locationen-input" value="' + escapeHtml(row.location_en || '') + '" placeholder="留空則英文版也顯示中文地點"></div>' +
       '<div class="field"><label>備註</label><textarea rows="2" class="hb-note-input">' + escapeHtml(row.note || '') + '</textarea></div>' +
+      '<div class="field"><label>備註（英文，選填）</label><textarea rows="2" class="hb-noteen-input" placeholder="留空則英文版也顯示中文備註">' + escapeHtml(row.note_en || '') + '</textarea></div>' +
       '<div class="field"><label>報名連結</label><input type="text" class="hb-link-input" value="' + escapeHtml(row.link || '') + '"></div>' +
       '<div class="card-actions">' +
         '<span class="msg" style="margin-right:12px"></span>' +
@@ -1157,7 +1261,10 @@
           event_time: card.querySelector('.hb-time-input').value.trim() || null,
           location: card.querySelector('.hb-location-input').value.trim() || null,
           note: card.querySelector('.hb-note-input').value.trim() || null,
-          link: card.querySelector('.hb-link-input').value.trim() || null
+          link: card.querySelector('.hb-link-input').value.trim() || null,
+          title_en: card.querySelector('.hb-titleen-input').value.trim() || null,
+          location_en: card.querySelector('.hb-locationen-input').value.trim() || null,
+          note_en: card.querySelector('.hb-noteen-input').value.trim() || null
         };
         var result = await sb.from('briefings').update(updates).eq('id', row.id);
         if (result.error) throw result.error;
@@ -1190,6 +1297,9 @@
       var locationEl = document.getElementById('hbLocation');
       var noteEl = document.getElementById('hbNote');
       var linkEl = document.getElementById('hbLink');
+      var titleEnEl = document.getElementById('hbTitleEn');
+      var locationEnEl = document.getElementById('hbLocationEn');
+      var noteEnEl = document.getElementById('hbNoteEn');
 
       if (!dateEl.value) { msg.textContent = '請選擇日期'; msg.className = 'msg err'; return; }
 
@@ -1203,12 +1313,16 @@
           event_time: timeEl.value.trim() || null,
           location: locationEl.value.trim() || null,
           note: noteEl.value.trim() || null,
-          link: linkEl.value.trim() || null
+          link: linkEl.value.trim() || null,
+          title_en: titleEnEl.value.trim() || null,
+          location_en: locationEnEl.value.trim() || null,
+          note_en: noteEnEl.value.trim() || null
         };
         var result = await sb.from('briefings').insert([payload]);
         if (result.error) throw result.error;
         titleEl.value = ''; dateEl.value = ''; timeEl.value = '';
         locationEl.value = ''; noteEl.value = ''; linkEl.value = '';
+        titleEnEl.value = ''; locationEnEl.value = ''; noteEnEl.value = '';
         msg.textContent = '已新增'; msg.className = 'msg ok';
         setTimeout(function(){ msg.textContent=''; }, 2000);
         loadBriefingsAdmin();
@@ -1233,7 +1347,7 @@
     if (!list) return;
     list.innerHTML = '載入中...';
     var result = await sb.from('travels')
-      .select('id,title,subtitle,image_url,description,features_text,status,line_link,sort_order')
+      .select('id,title,title_en,subtitle,subtitle_en,image_url,description,description_en,features_text,features_text_en,status,line_link,sort_order')
       .order('sort_order', { ascending: true });
     if (result.error) {
       list.innerHTML = '尚未建立 travels 資料表，或載入失敗：' + result.error.message +
@@ -1278,10 +1392,14 @@
           '</select>' +
         '</div>' +
         '<div class="field" style="margin-top:8px"><label>行程名稱</label><input type="text" class="travel-title-input" value="' + (row.title ? escapeHtml(row.title) : '') + '"></div>' +
+        '<div class="field" style="margin-top:8px"><label>行程名稱（英文，選填）</label><input type="text" class="travel-titleen-input" value="' + (row.title_en ? escapeHtml(row.title_en) : '') + '" placeholder="留空則英文版也顯示中文名稱"></div>' +
         '<div class="field" style="margin-top:8px"><label>副標題</label><input type="text" class="travel-subtitle-input" value="' + (row.subtitle ? escapeHtml(row.subtitle) : '') + '"></div>' +
+        '<div class="field" style="margin-top:8px"><label>副標題（英文，選填）</label><input type="text" class="travel-subtitleen-input" value="' + (row.subtitle_en ? escapeHtml(row.subtitle_en) : '') + '" placeholder="留空則英文版也顯示中文副標題"></div>' +
         '<div class="field" style="margin-top:8px"><label>更換主圖（選填）</label><input type="file" accept="image/*" class="travel-img-input"></div>' +
         '<div class="field" style="margin-top:8px"><label>行程介紹</label><textarea rows="3" class="travel-desc-input">' + (row.description ? escapeHtml(row.description) : '') + '</textarea></div>' +
+        '<div class="field" style="margin-top:8px"><label>行程介紹（英文，選填）</label><textarea rows="3" class="travel-descen-input" placeholder="留空則英文版也顯示中文介紹">' + (row.description_en ? escapeHtml(row.description_en) : '') + '</textarea></div>' +
         '<div class="field" style="margin-top:8px"><label>行程特色（一行一項）</label><textarea rows="4" class="travel-features-input">' + (row.features_text ? escapeHtml(row.features_text) : '') + '</textarea></div>' +
+        '<div class="field" style="margin-top:8px"><label>行程特色（英文，選填，一行一項）</label><textarea rows="4" class="travel-featuresen-input" placeholder="留空則英文版也顯示中文特色列表">' + (row.features_text_en ? escapeHtml(row.features_text_en) : '') + '</textarea></div>' +
         '<div class="field" style="margin-top:8px"><label>報名／洽詢連結</label><input type="text" class="travel-link-input" value="' + (row.line_link ? escapeHtml(row.line_link) : '') + '"></div>' +
         '<div class="photo-card-actions">' +
           '<button class="btn-small save">儲存</button>' +
@@ -1318,7 +1436,11 @@
           subtitle: card.querySelector('.travel-subtitle-input').value.trim() || null,
           description: card.querySelector('.travel-desc-input').value.trim() || null,
           features_text: card.querySelector('.travel-features-input').value.trim() || null,
-          line_link: card.querySelector('.travel-link-input').value.trim() || null
+          line_link: card.querySelector('.travel-link-input').value.trim() || null,
+          title_en: card.querySelector('.travel-titleen-input').value.trim() || null,
+          subtitle_en: card.querySelector('.travel-subtitleen-input').value.trim() || null,
+          description_en: card.querySelector('.travel-descen-input').value.trim() || null,
+          features_text_en: card.querySelector('.travel-featuresen-input').value.trim() || null
         };
         var fileInput = card.querySelector('.travel-img-input');
         if (fileInput.files[0]) {
@@ -1349,6 +1471,10 @@
       var descEl = document.getElementById(prefix + 'Desc');
       var featuresEl = document.getElementById(prefix + 'Features');
       var linkEl = document.getElementById(prefix + 'Link');
+      var titleEnEl = document.getElementById(prefix + 'TitleEn');
+      var subtitleEnEl = document.getElementById(prefix + 'SubtitleEn');
+      var descEnEl = document.getElementById(prefix + 'DescEn');
+      var featuresEnEl = document.getElementById(prefix + 'FeaturesEn');
 
       var title = titleEl.value.trim();
       if (!title) { msg.textContent = '請填寫行程名稱'; msg.className = 'msg err'; return; }
@@ -1381,7 +1507,11 @@
           description: descEl.value.trim() || null,
           features_text: featuresEl.value.trim() || null,
           line_link: linkEl.value.trim() || null,
-          sort_order: nextOrder
+          sort_order: nextOrder,
+          title_en: titleEnEl.value.trim() || null,
+          subtitle_en: subtitleEnEl.value.trim() || null,
+          description_en: descEnEl.value.trim() || null,
+          features_text_en: featuresEnEl.value.trim() || null
         };
 
         var result = await sb.from('travels').insert([payload]);
@@ -1389,6 +1519,7 @@
 
         titleEl.value = ''; subtitleEl.value = ''; imageEl.value = '';
         descEl.value = ''; featuresEl.value = ''; linkEl.value = '';
+        titleEnEl.value = ''; subtitleEnEl.value = ''; descEnEl.value = ''; featuresEnEl.value = '';
         if (imageUploadFailed) {
           msg.textContent = '已新增行程，但圖片上傳失敗，請稍後在下方「目前旅行行程」找到這筆行程重新上傳圖片';
           msg.className = 'msg err';
@@ -1413,7 +1544,7 @@
     if (!list) return;
     list.innerHTML = '載入中...';
     var result = await sb.from('teachers')
-      .select('id,name_cn,name_en,photo_url,credentials,sort_order')
+      .select('id,name_cn,name_en,photo_url,credentials,credentials_en,sort_order')
       .order('sort_order', { ascending: true });
     if (result.error) {
       list.innerHTML = '尚未建立師資資料表，或載入失敗：' + result.error.message +
@@ -1448,6 +1579,7 @@
       '<div class="field"><label>英文姓名</label><input type="text" class="tc-nameen-input" value="' + escapeHtml(row.name_en || '') + '"></div>' +
       '<div class="field"><label>更換照片（選填）</label><input type="file" class="tc-photo-input" accept="image/*"></div>' +
       '<div class="field"><label>經歷／專長（一行一條）</label><textarea rows="5" class="tc-creds-input">' + escapeHtml(row.credentials || '') + '</textarea></div>' +
+      '<div class="field"><label>經歷／專長（英文，選填，一行一條）</label><textarea rows="5" class="tc-credsen-input" placeholder="留空則英文版也顯示中文經歷列表">' + escapeHtml(row.credentials_en || '') + '</textarea></div>' +
       '<div class="card-actions">' +
         '<span class="msg" style="margin-right:12px"></span>' +
         '<button class="btn-small up"' + (idx === 0 ? ' disabled' : '') + '>上移</button>' +
@@ -1466,7 +1598,8 @@
         var updates = {
           name_cn: card.querySelector('.tc-namecn-input').value.trim(),
           name_en: card.querySelector('.tc-nameen-input').value.trim(),
-          credentials: card.querySelector('.tc-creds-input').value
+          credentials: card.querySelector('.tc-creds-input').value,
+          credentials_en: card.querySelector('.tc-credsen-input').value || null
         };
         var photoFile = card.querySelector('.tc-photo-input').files[0];
         if (photoFile) {
@@ -1506,6 +1639,7 @@
       var nameEnEl = document.getElementById('teacherNameEn');
       var photoEl = document.getElementById('teacherPhoto');
       var credsEl = document.getElementById('teacherCreds');
+      var credsEnEl = document.getElementById('teacherCredsEn');
 
       if (!nameCnEl.value.trim()) { msg.textContent = '請填寫中文姓名'; msg.className = 'msg err'; return; }
 
@@ -1526,11 +1660,12 @@
           name_en: nameEnEl.value.trim(),
           photo_url: photoUrl,
           credentials: credsEl.value,
+          credentials_en: credsEnEl.value || null,
           sort_order: nextOrder
         };
         var result = await sb.from('teachers').insert([payload]);
         if (result.error) throw result.error;
-        nameCnEl.value = ''; nameEnEl.value = ''; photoEl.value = ''; credsEl.value = '';
+        nameCnEl.value = ''; nameEnEl.value = ''; photoEl.value = ''; credsEl.value = ''; credsEnEl.value = '';
         msg.textContent = '已新增'; msg.className = 'msg ok';
         setTimeout(function(){ msg.textContent=''; }, 2000);
         loadTeachersAdmin();
