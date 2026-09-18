@@ -333,42 +333,66 @@
       <div class="sub" style="margin-bottom:16px">
         新增、編輯、刪除「療癒旅行」區塊的行程卡片，並分成「即將舉辦」與「曾經舉辦」兩組顯示在網站上。
       </div>
-      <div class="sub-h">新增旅行行程</div>
+      <div class="sub-h">新增「即將舉辦」的旅行</div>
       <div class="add-photo-box">
         <div class="field">
-          <label for="newTravelStatus">狀態</label>
-          <select id="newTravelStatus">
-            <option value="upcoming">即將舉辦</option>
-            <option value="past">曾經舉辦</option>
-          </select>
+          <label for="newTravelUpcomingTitle">行程名稱</label>
+          <input type="text" id="newTravelUpcomingTitle" placeholder="例如：香港海洋療癒之旅">
         </div>
         <div class="field">
-          <label for="newTravelTitle">行程名稱</label>
-          <input type="text" id="newTravelTitle" placeholder="例如：香港海洋療癒之旅">
+          <label for="newTravelUpcomingSubtitle">副標題（選填）</label>
+          <input type="text" id="newTravelUpcomingSubtitle" placeholder="例如：把旅行變成一場身心靈重啟之旅">
         </div>
         <div class="field">
-          <label for="newTravelSubtitle">副標題（選填）</label>
-          <input type="text" id="newTravelSubtitle" placeholder="例如：把旅行變成一場身心靈重啟之旅">
+          <label for="newTravelUpcomingImage">主圖（選填）</label>
+          <input type="file" id="newTravelUpcomingImage" accept="image/*">
         </div>
         <div class="field">
-          <label for="newTravelImage">主圖（選填）</label>
-          <input type="file" id="newTravelImage" accept="image/*">
+          <label for="newTravelUpcomingDesc">行程介紹（選填）</label>
+          <textarea id="newTravelUpcomingDesc" rows="3" placeholder="行程說明文字"></textarea>
         </div>
         <div class="field">
-          <label for="newTravelDesc">行程介紹（選填）</label>
-          <textarea id="newTravelDesc" rows="3" placeholder="行程說明文字"></textarea>
+          <label for="newTravelUpcomingFeatures">行程特色（選填，一行一項）</label>
+          <textarea id="newTravelUpcomingFeatures" rows="4" placeholder="例如：&#10;頌缽冥想體驗&#10;在地文化工作坊"></textarea>
         </div>
         <div class="field">
-          <label for="newTravelFeatures">行程特色（選填，一行一項）</label>
-          <textarea id="newTravelFeatures" rows="4" placeholder="例如：&#10;頌缽冥想體驗&#10;在地文化工作坊"></textarea>
+          <label for="newTravelUpcomingLink">報名／洽詢連結（選填，留空則預設 LINE 官方帳號）</label>
+          <input type="text" id="newTravelUpcomingLink" placeholder="https://lin.ee/Q8XKTw6">
         </div>
-        <div class="field">
-          <label for="newTravelLink">報名／洽詢連結（選填，留空則預設 LINE 官方帳號）</label>
-          <input type="text" id="newTravelLink" placeholder="https://lin.ee/Q8XKTw6">
-        </div>
-        <button class="btn" id="addTravelBtn">新增行程</button>
-        <span class="msg" id="travelAddMsg" style="margin-left:12px"></span>
+        <button class="btn" id="addTravelUpcomingBtn">新增「即將舉辦」行程</button>
+        <span class="msg" id="travelUpcomingAddMsg" style="margin-left:12px"></span>
       </div>
+
+      <div class="sub-h">新增「曾經舉辦」的旅行行程</div>
+      <div class="add-photo-box">
+        <div class="field">
+          <label for="newTravelPastTitle">行程名稱</label>
+          <input type="text" id="newTravelPastTitle" placeholder="例如：花東頌缽療癒之旅">
+        </div>
+        <div class="field">
+          <label for="newTravelPastSubtitle">副標題（選填）</label>
+          <input type="text" id="newTravelPastSubtitle" placeholder="例如：2025年10月 · 花蓮">
+        </div>
+        <div class="field">
+          <label for="newTravelPastImage">主圖（選填）</label>
+          <input type="file" id="newTravelPastImage" accept="image/*">
+        </div>
+        <div class="field">
+          <label for="newTravelPastDesc">行程介紹（選填）</label>
+          <textarea id="newTravelPastDesc" rows="3" placeholder="行程回顧文字"></textarea>
+        </div>
+        <div class="field">
+          <label for="newTravelPastFeatures">行程特色（選填，一行一項）</label>
+          <textarea id="newTravelPastFeatures" rows="4" placeholder="例如：&#10;頌缽冥想體驗&#10;在地文化工作坊"></textarea>
+        </div>
+        <div class="field">
+          <label for="newTravelPastLink">報名／洽詢連結（選填，留空則預設 LINE 官方帳號）</label>
+          <input type="text" id="newTravelPastLink" placeholder="https://lin.ee/Q8XKTw6">
+        </div>
+        <button class="btn" id="addTravelPastBtn">新增「曾經舉辦」行程</button>
+        <span class="msg" id="travelPastAddMsg" style="margin-left:12px"></span>
+      </div>
+
       <div class="sub-h">目前旅行行程</div>
       <div id="travelList"></div>
     </div>
@@ -1314,17 +1338,17 @@
     return card;
   }
 
-  var addTravelBtnEl = document.getElementById('addTravelBtn');
-  if (addTravelBtnEl) {
-    addTravelBtnEl.addEventListener('click', async function(){
-      var msg = document.getElementById('travelAddMsg');
-      var titleEl = document.getElementById('newTravelTitle');
-      var subtitleEl = document.getElementById('newTravelSubtitle');
-      var statusEl = document.getElementById('newTravelStatus');
-      var imageEl = document.getElementById('newTravelImage');
-      var descEl = document.getElementById('newTravelDesc');
-      var featuresEl = document.getElementById('newTravelFeatures');
-      var linkEl = document.getElementById('newTravelLink');
+  function setupAddTravelForm(status, prefix, btnId, msgId){
+    var btnEl = document.getElementById(btnId);
+    if (!btnEl) return;
+    btnEl.addEventListener('click', async function(){
+      var msg = document.getElementById(msgId);
+      var titleEl = document.getElementById(prefix + 'Title');
+      var subtitleEl = document.getElementById(prefix + 'Subtitle');
+      var imageEl = document.getElementById(prefix + 'Image');
+      var descEl = document.getElementById(prefix + 'Desc');
+      var featuresEl = document.getElementById(prefix + 'Features');
+      var linkEl = document.getElementById(prefix + 'Link');
 
       var title = titleEl.value.trim();
       if (!title) { msg.textContent = '請填寫行程名稱'; msg.className = 'msg err'; return; }
@@ -1352,7 +1376,7 @@
         var payload = {
           title: title,
           subtitle: subtitleEl.value.trim() || null,
-          status: statusEl.value,
+          status: status,
           image_url: imageUrl || null,
           description: descEl.value.trim() || null,
           features_text: featuresEl.value.trim() || null,
@@ -1381,6 +1405,8 @@
       btn.disabled = false;
     });
   }
+  setupAddTravelForm('upcoming', 'newTravelUpcoming', 'addTravelUpcomingBtn', 'travelUpcomingAddMsg');
+  setupAddTravelForm('past', 'newTravelPast', 'addTravelPastBtn', 'travelPastAddMsg');
 
   async function loadTeachersAdmin(){
     var list = document.getElementById('teachersList');
