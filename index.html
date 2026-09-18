@@ -5524,46 +5524,72 @@ document.addEventListener('keydown', function(e) {
       }
     } catch (e) { flyoutUl = null; }
 
+    // 若分類名稱跟既有「靜態」課程分類（例如原本就有的「深度療癒系列」）同名，
+    // 就把新課程直接併入該既有區塊，而不是在頁面別處另外產生一個同名但空盪盪、
+    // 導覽選單卻連過去的重複標題（這會讓使用者點分類選單卻看不到課程）。
+    var staticSeriesByTitle = {};
+    document.querySelectorAll(".plan-series[id^='plan-']").forEach(function (el) {
+      var titleEl0 = el.querySelector(".plan-series-title.i18n-zh") || el.querySelector(".plan-series-title");
+      if (!titleEl0) return;
+      var key = stripWs(titleEl0.textContent);
+      if (key) staticSeriesByTitle[key] = el;
+    });
+
     order.forEach(function (cat) {
       var items = groups[cat];
-      var seriesId = "plan-extra-" + cat.replace(/\s+/g, "");
-      var seriesEl = document.createElement("div");
-      seriesEl.className = "plan-series reveal visible";
-      seriesEl.id = seriesId;
+      var existingSection = staticSeriesByTitle[stripWs(cat)] || null;
+      var seriesId = existingSection ? existingSection.id : ("plan-extra-" + cat.replace(/\s+/g, ""));
+      var seriesEl = existingSection;
+      var rowEl;
 
-      if (flyoutUl) {
-        var alreadyListed = false;
-        flyoutUl.querySelectorAll("a").forEach(function (a) {
-          if (stripWs(a.textContent) === stripWs(cat)) alreadyListed = true;
-        });
-        if (!alreadyListed) {
-          var flyoutLi = document.createElement("li");
-          var flyoutA = document.createElement("a");
-          flyoutA.href = "#" + seriesId;
-          flyoutA.textContent = cat;
-          flyoutLi.appendChild(flyoutA);
-          flyoutUl.appendChild(flyoutLi);
+      if (!existingSection) {
+        seriesEl = document.createElement("div");
+        seriesEl.className = "plan-series reveal visible";
+        seriesEl.id = seriesId;
+
+        if (flyoutUl) {
+          var alreadyListed = false;
+          flyoutUl.querySelectorAll("a").forEach(function (a) {
+            if (stripWs(a.textContent) === stripWs(cat)) alreadyListed = true;
+          });
+          if (!alreadyListed) {
+            var flyoutLi = document.createElement("li");
+            var flyoutA = document.createElement("a");
+            flyoutA.href = "#" + seriesId;
+            flyoutA.textContent = cat;
+            flyoutLi.appendChild(flyoutA);
+            flyoutUl.appendChild(flyoutLi);
+          }
+        }
+
+        var headerEl = document.createElement("div");
+        headerEl.className = "plan-series-header";
+        var iconEl = document.createElement("span");
+        iconEl.className = "plan-series-icon";
+        iconEl.textContent = "🌟";
+        var titleEl = document.createElement("span");
+        titleEl.className = "plan-series-title";
+        titleEl.innerHTML = i18nHtml(cat.split("").join(" "), categoryEn(cat)); // 比照原本標題逐字加空白的排版風格
+        headerEl.appendChild(iconEl);
+        headerEl.appendChild(titleEl);
+        seriesEl.appendChild(headerEl);
+
+        rowEl = document.createElement("div");
+        rowEl.className = "plan-cards-row pci-row";
+      } else {
+        rowEl = existingSection.querySelector(".plan-cards-row");
+        if (!rowEl) {
+          rowEl = document.createElement("div");
+          rowEl.className = "plan-cards-row pci-row";
+          existingSection.appendChild(rowEl);
         }
       }
 
-      var headerEl = document.createElement("div");
-      headerEl.className = "plan-series-header";
-      var iconEl = document.createElement("span");
-      iconEl.className = "plan-series-icon";
-      iconEl.textContent = "🌟";
-      var titleEl = document.createElement("span");
-      titleEl.className = "plan-series-title";
-      titleEl.innerHTML = i18nHtml(cat.split("").join(" "), categoryEn(cat)); // 比照原本標題逐字加空白的排版風格
-      headerEl.appendChild(iconEl);
-      headerEl.appendChild(titleEl);
-      seriesEl.appendChild(headerEl);
-
-      var rowEl = document.createElement("div");
-      var rowClass = "plan-cards-row pci-row";
-      if (items.length === 1) rowClass += " pci-row-1";
-      else if (items.length === 2) rowClass += " pci-row-2";
-      else if (items.length === 3) rowClass += " pci-row-3";
-      rowEl.className = rowClass;
+      var totalCount = (existingSection ? rowEl.children.length : 0) + items.length;
+      rowEl.classList.remove("pci-row-1", "pci-row-2", "pci-row-3");
+      if (totalCount === 1) rowEl.classList.add("pci-row-1");
+      else if (totalCount === 2) rowEl.classList.add("pci-row-2");
+      else if (totalCount === 3) rowEl.classList.add("pci-row-3");
 
       items.forEach(function (item, idx) {
         var row = item.row;
@@ -5700,8 +5726,10 @@ document.addEventListener('keydown', function(e) {
         modalOverlay.addEventListener("pointerdown", function (e) { if (e.target === modalOverlay) window.closeModal(modalId); });
       });
 
-      seriesEl.appendChild(rowEl);
-      container.appendChild(seriesEl);
+      if (!existingSection) {
+        seriesEl.appendChild(rowEl);
+        container.appendChild(seriesEl);
+      }
     });
   }
 
