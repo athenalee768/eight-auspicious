@@ -105,6 +105,7 @@
       <div class="tab" data-tab="regs">報名管理</div>
       <div class="tab" data-tab="photos">相片管理</div>
       <div class="tab" data-tab="courses">課程管理</div>
+      <div class="tab" data-tab="travel">療癒旅行</div>
       <div class="tab" data-tab="healthbiz">健康輕創業</div>
       <div class="tab" data-tab="teachers">師資管理</div>
     </div>
@@ -328,6 +329,50 @@
     </div>
 
     <!-- 師資管理 -->
+    <div class="panel" id="panel-travel">
+      <div class="sub" style="margin-bottom:16px">
+        新增、編輯、刪除「療癒旅行」區塊的行程卡片，並分成「即將舉辦」與「曾經舉辦」兩組顯示在網站上。
+      </div>
+      <div class="sub-h">新增旅行行程</div>
+      <div class="add-photo-box">
+        <div class="field">
+          <label for="newTravelStatus">狀態</label>
+          <select id="newTravelStatus">
+            <option value="upcoming">即將舉辦</option>
+            <option value="past">曾經舉辦</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="newTravelTitle">行程名稱</label>
+          <input type="text" id="newTravelTitle" placeholder="例如：香港海洋療癒之旅">
+        </div>
+        <div class="field">
+          <label for="newTravelSubtitle">副標題（選填）</label>
+          <input type="text" id="newTravelSubtitle" placeholder="例如：把旅行變成一場身心靈重啟之旅">
+        </div>
+        <div class="field">
+          <label for="newTravelImage">主圖（選填）</label>
+          <input type="file" id="newTravelImage" accept="image/*">
+        </div>
+        <div class="field">
+          <label for="newTravelDesc">行程介紹（選填）</label>
+          <textarea id="newTravelDesc" rows="3" placeholder="行程說明文字"></textarea>
+        </div>
+        <div class="field">
+          <label for="newTravelFeatures">行程特色（選填，一行一項）</label>
+          <textarea id="newTravelFeatures" rows="4" placeholder="例如：&#10;頌缽冥想體驗&#10;在地文化工作坊"></textarea>
+        </div>
+        <div class="field">
+          <label for="newTravelLink">報名／洽詢連結（選填，留空則預設 LINE 官方帳號）</label>
+          <input type="text" id="newTravelLink" placeholder="https://lin.ee/Q8XKTw6">
+        </div>
+        <button class="btn" id="addTravelBtn">新增行程</button>
+        <span class="msg" id="travelAddMsg" style="margin-left:12px"></span>
+      </div>
+      <div class="sub-h">目前旅行行程</div>
+      <div id="travelList"></div>
+    </div>
+
     <div class="panel" id="panel-teachers">
       <div class="sub" style="margin-bottom:16px">
         新增、編輯、刪除師資介紹頁上的老師卡片（照片＋姓名＋經歷）。
@@ -412,6 +457,7 @@
     loadCourses();
     loadBriefingsAdmin();
     loadTeachersAdmin();
+    loadTravelsAdmin();
   }
 
   // ---- Tabs ----
@@ -1153,6 +1199,188 @@
 
   // ---- 師資管理（讀寫 teachers 表：新增／編輯／刪除／排序） ----
   var teachersCache = [];
+
+  // ---- 療癒旅行：即將舉辦／曾經舉辦 行程管理（讀寫 travels 表）----
+  var travelsCache = [];
+  var STATUS_LABELS = { upcoming: '即將舉辦', past: '曾經舉辦' };
+
+  async function loadTravelsAdmin(){
+    var list = document.getElementById('travelList');
+    if (!list) return;
+    list.innerHTML = '載入中...';
+    var result = await sb.from('travels')
+      .select('id,title,subtitle,image_url,description,features_text,status,line_link,sort_order')
+      .order('sort_order', { ascending: true });
+    if (result.error) {
+      list.innerHTML = '尚未建立 travels 資料表，或載入失敗：' + result.error.message +
+        '<br>（需請開發者先在 Supabase 建立 travels 資料表）';
+      return;
+    }
+    travelsCache = result.data || [];
+    list.innerHTML = '';
+    if (!travelsCache.length) {
+      list.innerHTML = '<div class="empty">尚未新增任何行程</div>';
+      return;
+    }
+    var lastStatus = null;
+    travelsCache.forEach(function(row, idx){
+      if (row.status !== lastStatus) {
+        var h = document.createElement('div');
+        h.className = 'sub-h';
+        h.style.marginTop = '20px';
+        h.textContent = STATUS_LABELS[row.status] || row.status;
+        list.appendChild(h);
+        lastStatus = row.status;
+      }
+      list.appendChild(renderTravelCard(row, idx));
+    });
+  }
+
+  function renderTravelCard(row, idx){
+    var card = document.createElement('div');
+    card.className = 'photo-card';
+    var imgHtml = row.image_url
+      ? '<img src="' + row.image_url + '">'
+      : '<div style="width:100%;aspect-ratio:4/3;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px">尚未設定圖片</div>';
+    card.innerHTML =
+      imgHtml +
+      '<div class="photo-card-body">' +
+        '<div class="photo-card-key">' + escapeHtml(row.title || '') + '</div>' +
+        '<div class="field" style="margin-top:8px">' +
+          '<label>狀態</label>' +
+          '<select class="travel-status-input">' +
+            '<option value="upcoming"' + (row.status === 'upcoming' ? ' selected' : '') + '>即將舉辦</option>' +
+            '<option value="past"' + (row.status === 'past' ? ' selected' : '') + '>曾經舉辦</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="field" style="margin-top:8px"><label>行程名稱</label><input type="text" class="travel-title-input" value="' + (row.title ? escapeHtml(row.title) : '') + '"></div>' +
+        '<div class="field" style="margin-top:8px"><label>副標題</label><input type="text" class="travel-subtitle-input" value="' + (row.subtitle ? escapeHtml(row.subtitle) : '') + '"></div>' +
+        '<div class="field" style="margin-top:8px"><label>更換主圖（選填）</label><input type="file" accept="image/*" class="travel-img-input"></div>' +
+        '<div class="field" style="margin-top:8px"><label>行程介紹</label><textarea rows="3" class="travel-desc-input">' + (row.description ? escapeHtml(row.description) : '') + '</textarea></div>' +
+        '<div class="field" style="margin-top:8px"><label>行程特色（一行一項）</label><textarea rows="4" class="travel-features-input">' + (row.features_text ? escapeHtml(row.features_text) : '') + '</textarea></div>' +
+        '<div class="field" style="margin-top:8px"><label>報名／洽詢連結</label><input type="text" class="travel-link-input" value="' + (row.line_link ? escapeHtml(row.line_link) : '') + '"></div>' +
+        '<div class="photo-card-actions">' +
+          '<button class="btn-small save">儲存</button>' +
+          '<button class="btn-small btn-danger del">刪除行程</button>' +
+          '<span class="msg"></span>' +
+        '</div>' +
+      '</div>';
+
+    var msg = card.querySelector('.msg');
+
+    card.querySelector('.del').addEventListener('click', async function(){
+      if (!confirm('確定要刪除「' + (row.title || '') + '」嗎？刪除後網站上會立刻看不到這個行程，此動作無法復原。')) return;
+      var btn = this;
+      btn.disabled = true;
+      msg.textContent = '刪除中...'; msg.className = 'msg';
+      try {
+        var result = await sb.from('travels').delete().eq('id', row.id);
+        if (result.error) throw result.error;
+        loadTravelsAdmin();
+      } catch(e) {
+        msg.textContent = '刪除失敗：' + (e.message || e); msg.className = 'msg err';
+        btn.disabled = false;
+      }
+    });
+
+    card.querySelector('.save').addEventListener('click', async function(){
+      var btn = this;
+      btn.disabled = true;
+      msg.textContent = '儲存中...'; msg.className = 'msg';
+      try {
+        var updates = {
+          status: card.querySelector('.travel-status-input').value,
+          title: card.querySelector('.travel-title-input').value.trim(),
+          subtitle: card.querySelector('.travel-subtitle-input').value.trim() || null,
+          description: card.querySelector('.travel-desc-input').value.trim() || null,
+          features_text: card.querySelector('.travel-features-input').value.trim() || null,
+          line_link: card.querySelector('.travel-link-input').value.trim() || null
+        };
+        var fileInput = card.querySelector('.travel-img-input');
+        if (fileInput.files[0]) {
+          updates.image_url = await uploadImageFile(fileInput.files[0], 'travel');
+        }
+        var result = await sb.from('travels').update(updates).eq('id', row.id);
+        if (result.error) throw result.error;
+        msg.textContent = '已儲存'; msg.className = 'msg ok';
+        setTimeout(function(){ msg.textContent=''; }, 2000);
+        loadTravelsAdmin();
+      } catch(e) {
+        msg.textContent = '失敗：' + (e.message || e); msg.className = 'msg err';
+      }
+      btn.disabled = false;
+    });
+
+    return card;
+  }
+
+  var addTravelBtnEl = document.getElementById('addTravelBtn');
+  if (addTravelBtnEl) {
+    addTravelBtnEl.addEventListener('click', async function(){
+      var msg = document.getElementById('travelAddMsg');
+      var titleEl = document.getElementById('newTravelTitle');
+      var subtitleEl = document.getElementById('newTravelSubtitle');
+      var statusEl = document.getElementById('newTravelStatus');
+      var imageEl = document.getElementById('newTravelImage');
+      var descEl = document.getElementById('newTravelDesc');
+      var featuresEl = document.getElementById('newTravelFeatures');
+      var linkEl = document.getElementById('newTravelLink');
+
+      var title = titleEl.value.trim();
+      if (!title) { msg.textContent = '請填寫行程名稱'; msg.className = 'msg err'; return; }
+
+      var btn = this;
+      btn.disabled = true;
+      msg.textContent = '新增中...'; msg.className = 'msg';
+      try {
+        var imageUrl = '';
+        var imageFile = imageEl.files[0];
+        var imageUploadFailed = false;
+        if (imageFile) {
+          try {
+            imageUrl = await uploadImageFile(imageFile, 'travel');
+          } catch (imgErr) {
+            console.error('新增行程時，圖片上傳失敗（將先建立行程，圖片可稍後於下方補傳）：', imgErr);
+            imageUploadFailed = true;
+          }
+        }
+
+        var nextOrder = travelsCache.length
+          ? Math.max.apply(null, travelsCache.map(function(r){ return r.sort_order || 0; })) + 1
+          : 0;
+
+        var payload = {
+          title: title,
+          subtitle: subtitleEl.value.trim() || null,
+          status: statusEl.value,
+          image_url: imageUrl || null,
+          description: descEl.value.trim() || null,
+          features_text: featuresEl.value.trim() || null,
+          line_link: linkEl.value.trim() || null,
+          sort_order: nextOrder
+        };
+
+        var result = await sb.from('travels').insert([payload]);
+        if (result.error) throw result.error;
+
+        titleEl.value = ''; subtitleEl.value = ''; imageEl.value = '';
+        descEl.value = ''; featuresEl.value = ''; linkEl.value = '';
+        if (imageUploadFailed) {
+          msg.textContent = '已新增行程，但圖片上傳失敗，請稍後在下方「目前旅行行程」找到這筆行程重新上傳圖片';
+          msg.className = 'msg err';
+        } else {
+          msg.textContent = '已新增'; msg.className = 'msg ok';
+          setTimeout(function(){ msg.textContent=''; }, 2000);
+        }
+        loadTravelsAdmin();
+      } catch(e) {
+        msg.textContent = '失敗：' + (e.message || e) +
+          '（若尚未建立 travels 資料表，需請開發者先在 Supabase 建立）';
+        msg.className = 'msg err';
+      }
+      btn.disabled = false;
+    });
+  }
 
   async function loadTeachersAdmin(){
     var list = document.getElementById('teachersList');
