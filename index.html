@@ -5249,10 +5249,40 @@ document.addEventListener('keydown', function(e) {
 
     var BLANK_IMG = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 
+    // 「課程方案總覽」下拉選單同步：找到既有的靜態選單，之後幫每個全新分類補上一個項目
+    var flyoutUl = null;
+    try {
+      var flyoutCandidates = document.querySelectorAll(".has-sub-flyout");
+      for (var fi = 0; fi < flyoutCandidates.length; fi++) {
+        var flyoutLink = flyoutCandidates[fi].querySelector(":scope > a");
+        if (flyoutLink && stripWs(flyoutLink.textContent) === "課程方案總覽") {
+          flyoutUl = flyoutCandidates[fi].querySelector(":scope > ul.sub-menu-flyout");
+          break;
+        }
+      }
+    } catch (e) { flyoutUl = null; }
+
     order.forEach(function (cat) {
       var items = groups[cat];
+      var seriesId = "plan-extra-" + cat.replace(/\s+/g, "");
       var seriesEl = document.createElement("div");
       seriesEl.className = "plan-series reveal visible";
+      seriesEl.id = seriesId;
+
+      if (flyoutUl) {
+        var alreadyListed = false;
+        flyoutUl.querySelectorAll("a").forEach(function (a) {
+          if (stripWs(a.textContent) === stripWs(cat)) alreadyListed = true;
+        });
+        if (!alreadyListed) {
+          var flyoutLi = document.createElement("li");
+          var flyoutA = document.createElement("a");
+          flyoutA.href = "#" + seriesId;
+          flyoutA.textContent = cat;
+          flyoutLi.appendChild(flyoutA);
+          flyoutUl.appendChild(flyoutLi);
+        }
+      }
 
       var headerEl = document.createElement("div");
       headerEl.className = "plan-series-header";
