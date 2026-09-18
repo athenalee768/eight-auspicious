@@ -2513,6 +2513,13 @@ body.modal-open {
   letter-spacing: 3px; font-style: italic;
   margin-bottom: 18px;
 }
+body.lang-en .t3-name-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-style: normal; font-weight: 500;
+  letter-spacing: 2px; color: var(--cream);
+  margin-bottom: 3px;
+}
 .t3-creds {
   list-style: none;
   display: flex; flex-direction: column; gap: 8px;
@@ -5872,7 +5879,17 @@ document.addEventListener('keydown', function(e) {
           } else if (t.type === "href") {
             el.href = value;
           } else {
-            el.innerHTML = i18nHtml(value, valueEn).replace(/\n/g, "<br>");
+            var existingZh = el.querySelector(".i18n-zh");
+            var existingEn = el.querySelector(".i18n-en");
+            if (existingZh && existingEn) {
+              // 元素本來就已經有寫死的中/英文雙語版本：中文一律用後台內容覆蓋；
+              // 英文只有在後台也有填「欄位名稱_en」時才覆蓋，否則保留原本寫好的英文版本，
+              // 避免只改中文卻連帶把原本的英文翻譯洗掉。
+              existingZh.innerHTML = value.replace(/\n/g, "<br>");
+              if (valueEn) existingEn.innerHTML = valueEn.replace(/\n/g, "<br>");
+            } else {
+              el.innerHTML = i18nHtml(value, valueEn).replace(/\n/g, "<br>");
+            }
           }
         });
       });
@@ -5977,7 +5994,7 @@ document.addEventListener('keydown', function(e) {
         card.appendChild(photoWrap);
 
         var nameCn = document.createElement("div");
-        nameCn.className = "t3-name-cn";
+        nameCn.className = "t3-name-cn i18n-zh";
         nameCn.textContent = t.name_cn || "";
         card.appendChild(nameCn);
 
