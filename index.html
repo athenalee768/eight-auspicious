@@ -3082,15 +3082,16 @@ p, li { font-size: 26px !important; }
 #latest-events-gallery .extra-gallery-frame{aspect-ratio:auto}
 #latest-events-gallery .extra-gallery-img{height:auto;object-fit:contain}
 #latest-events-gallery .extra-gallery-caption{display:none}
-/* 熱門課程：建議最多放 4 張，卡片放大並置中，避免像素格空白 */
+/* 熱門課程：建議最多放 4 張，卡片放大並置中，依相片實際比例顯示，不裁切 */
 #hot-course-gallery{
   grid-template-columns:repeat(auto-fit,minmax(240px,360px));
   justify-content:center;gap:24px;
 }
-#hot-course-gallery .extra-gallery-frame{aspect-ratio:3/4}
+#hot-course-gallery .extra-gallery-frame{aspect-ratio:auto}
+#hot-course-gallery .extra-gallery-img{height:auto;object-fit:contain}
 /* 特定圖片欄位改為完全由後台上傳，這裡預留合理比例避免版面跑掉 */
 #brand_poster_image,#event-main-image{aspect-ratio:auto;object-fit:contain;background:var(--navy)}
-#health_biz_poster_image{aspect-ratio:3/4;object-fit:contain;background:var(--navy)}
+#health_biz_poster_image{aspect-ratio:auto;object-fit:contain;background:var(--navy);width:100%;height:auto;display:block}
 #team-photo-gallery{aspect-ratio:auto;object-fit:contain;background:var(--navy);width:100%;height:auto;display:block}
 </style>
 
@@ -3474,7 +3475,7 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
     </div>
 
     <div class="hb-poster-wrap reveal">
-      <div class="gallery-pair-frame" style="max-width:480px;margin:0 auto 28px;">
+      <div style="max-width:480px;margin:0 auto 28px;">
         <img id="health_biz_poster_image" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="AI智慧健康輕創業" loading="lazy">
       </div>
       <p id="hb-intro" class="hb-intro-text">「AI 智慧大數據」精準、追蹤、量化健康；「自然頻率療癒」頌缽、聲息、量子放鬆 —— 全新養生紀元，正式降臨。健康 × 科技 × 收入，開啟你的人生新可能。</p>
