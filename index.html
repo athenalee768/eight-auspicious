@@ -3081,7 +3081,7 @@ p, li { font-size: 26px !important; }
 #latest-events-gallery .extra-gallery-caption{display:none}
 /* 特定圖片欄位改為完全由後台上傳，這裡預留合理比例避免版面跑掉 */
 #brand_poster_image,#event-main-image{aspect-ratio:auto;object-fit:contain;background:var(--navy)}
-#event-secondary-image,#team-photo-gallery,#health_biz_poster_image{aspect-ratio:3/4;object-fit:contain;background:var(--navy)}
+#team-photo-gallery,#health_biz_poster_image{aspect-ratio:3/4;object-fit:contain;background:var(--navy)}
 </style>
 
 
@@ -3248,6 +3248,11 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
         <li><a href="#latest-events">最新活動</a></li>
       </ul>
     </li>
+    <li class="has-sub"><a href="#gallery">熱門課程</a>
+      <ul class="sub-menu">
+        <li><a href="#gallery">熱門課程總覽</a></li>
+      </ul>
+    </li>
     <li class="has-sub"><a href="#about">關於我們</a>
       <ul class="sub-menu">
         <li><a href="#about">品牌理念</a></li>
@@ -3283,11 +3288,6 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
         <li><a href="#teachers">師資介紹</a></li>
       </ul>
     </li>
-    <li class="has-sub"><a href="#gallery">精彩時刻</a>
-      <ul class="sub-menu">
-        <li><a href="#gallery">精彩時刻總覽</a></li>
-      </ul>
-    </li>
     <li class="has-sub"><a href="#frequencies">頻率系統</a>
       <ul class="sub-menu">
         <li class="has-sub-flyout"><a href="#frequencies">系統介紹</a>
@@ -3310,7 +3310,7 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
         <li><a href="#cta">立即報名</a></li>
       </ul>
     </li>
-    <li class="has-sub"><a href="#highlights">花絮</a>
+    <li class="has-sub"><a href="#highlights">精彩時刻</a>
       <ul class="sub-menu">
         <li><a href="#highlights">活動花絮</a></li>
       </ul>
@@ -3327,15 +3327,15 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
 <div class="mobile-menu" id="mobileMenu">
   <button class="mobile-menu-close" id="menuClose">✕</button>
   <a href="#latest-events" class="menu-link">最新活動</a>
+  <a href="#gallery" class="menu-link">熱門課程</a>
   <a href="#about" class="menu-link">關於我們</a>
   <a href="#health-biz" class="menu-link">聲息智養AI輕創業</a>
   <a href="#pricing" class="menu-link">八吉祥音樂課程</a>
   <a href="#travel" class="menu-link">療癒旅行</a>
   <a href="#teachers" class="menu-link">師資介紹</a>
-  <a href="#gallery" class="menu-link">精彩時刻</a>
   <a href="#frequencies" class="menu-link">頻率系統</a>
   <a href="#event" class="menu-link">公益活動</a>
-  <a href="#highlights" class="menu-link">活動花絮</a>
+  <a href="#highlights" class="menu-link">精彩時刻</a>
   <a href="#faq" class="menu-link">FAQ</a>
   <a href="#cta" class="menu-link">立即預約</a>
 </div>
@@ -3405,6 +3405,21 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   </div>
 </section>
 
+<!-- HOT COURSE (原精彩時刻，改為熱門課程) -->
+<section id="gallery">
+  <div class="si">
+    <div class="sh">
+      <div class="sbadge reveal">Our Studio</div>
+      <h2 class="stitle reveal rd1">熱 門 課 程</h2>
+      <div class="gline reveal rd2"></div>
+    </div>
+    <div class="extra-gallery-wrap" id="hot-course-wrap" style="display:none; margin-top:0">
+      <div class="extra-gallery-grid" id="hot-course-gallery"></div>
+    </div>
+    <p id="hot-course-empty" class="hb-briefing-empty">熱門課程精選相片即將呈現，敬請期待。</p>
+  </div>
+</section>
+
 <!-- ABOUT -->
 <section id="about">
   <div class="section-parallax-bg" aria-hidden="true"></div>
@@ -3449,6 +3464,9 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
     </div>
 
     <div class="hb-poster-wrap reveal">
+      <div class="gallery-pair-frame" style="max-width:420px;margin:0 auto 28px;">
+        <img id="health_biz_poster_image" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="AI智慧健康輕創業" loading="lazy">
+      </div>
       <p id="hb-intro" class="hb-intro-text">「AI 智慧大數據」精準、追蹤、量化健康；「自然頻率療癒」頌缽、聲息、量子放鬆 —— 全新養生紀元，正式降臨。健康 × 科技 × 收入，開啟你的人生新可能。</p>
     </div>
 
@@ -3740,43 +3758,18 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
       <div class="gline reveal rd3"></div>
     </div>
     <div id="teachers-grid" class="teachers-3col"></div>
+    <div class="gallery-pair-item reveal" style="max-width:420px;margin:36px auto 0;">
+      <div class="gallery-pair-frame">
+        <img id="team-photo-gallery" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="八吉祥強棒師資團隊" loading="lazy">
+      </div>
+      <div class="gallery-pair-cap">八吉祥音樂工作室 · 強棒師資團隊</div>
+    </div>
     <div class="extra-gallery-wrap" id="teacher-extra-wrap" style="display:none">
       <div class="sh" style="margin-bottom:24px">
         <p class="ssub reveal">更 多 師 資 花 絮</p>
       </div>
       <div class="extra-gallery-grid" id="teacher-extra-gallery"></div>
     </div>
-  </div>
-</section>
-
-<!-- GALLERY -->
-<section id="gallery">
-  <div class="si">
-    <div class="sh">
-      <div class="sbadge reveal">Our Studio</div>
-      <h2 class="stitle reveal rd1">精 彩 時 刻</h2>
-      <div class="gline reveal rd2"></div>
-    </div>
-    <div class="gallery-pair gallery-3col">
-      <div class="gallery-pair-item reveal rd1">
-        <div class="gallery-pair-frame">
-          <img id="event-secondary-image" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="公益音樂下午茶活動" loading="lazy">
-        </div>
-        <div id="event-gallery-caption" class="gallery-pair-cap">公益音樂下午茶 · 香巴拉傳奇</div>
-      </div>
-      <div class="gallery-pair-item reveal rd2">
-        <div class="gallery-pair-frame">
-          <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" id="team-photo-gallery" alt="八吉祥強棒師資團隊" loading="lazy">
-        </div>
-        <div class="gallery-pair-cap">八吉祥音樂工作室 · 強棒師資團隊</div>
-      </div>
-      <div class="gallery-pair-item reveal rd3">
-        <div class="gallery-pair-frame">
-          <img id="health_biz_poster_image" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="AI智慧健康輕創業" loading="lazy">
-        </div>
-        <div id="health-biz-poster-caption" class="gallery-pair-cap">聲息智養AI輕創業 · 八吉祥・聲息智養</div>
-      </div>
-          </div>
   </div>
 </section>
 
@@ -3933,7 +3926,7 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   <div class="si">
     <div class="sh">
       <div class="sbadge reveal">Studio Life</div>
-      <h2 class="stitle reveal rd1">活 動 花 絮</h2>
+      <h2 class="stitle reveal rd1">精 彩 時 刻</h2>
       <p class="ssub reveal rd2">記錄每一次療癒的美好瞬間</p>
       <div class="gline reveal rd3"></div>
     </div>
@@ -5570,6 +5563,10 @@ document.addEventListener('keydown', function(e) {
       renderExtraGallery(latestEventRows, "latest-events-gallery", "latest-events-wrap");
       var latestEventsEmpty = document.getElementById("latest-events-empty");
       if (latestEventsEmpty && latestEventRows.length) { latestEventsEmpty.style.display = "none"; }
+      var hotCourseRows = rows.filter(function (r) { return r.category === "hot_course"; });
+      renderExtraGallery(hotCourseRows, "hot-course-gallery", "hot-course-wrap");
+      var hotCourseEmpty = document.getElementById("hot-course-empty");
+      if (hotCourseEmpty && hotCourseRows.length) { hotCourseEmpty.style.display = "none"; }
     } catch (err) {
       console.error("讀取相片資料失敗：", err);
     }
@@ -5598,8 +5595,6 @@ document.addEventListener('keydown', function(e) {
     event_title_sub: { id: "event-title-sub-value", type: "html" },
     event_time: { id: "event-time-value", type: "html" },
     event_main_image: { id: "event-main-image", type: "src" },
-    event_secondary_image: { id: "event-secondary-image", type: "src" },
-    event_gallery_caption: { id: "event-gallery-caption", type: "html" },
     event_register_url: { id: "event-register-link", type: "href" },
     team_photo_image: { id: "team-photo-gallery", type: "src" },
     health_biz_poster_image: { id: "health_biz_poster_image", type: "src" },

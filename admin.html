@@ -141,6 +141,22 @@
       <div class="sub" style="margin-bottom:16px">更換網站上指定位置的圖片（例如活動主圖）。</div>
       <div id="specificPhotoList"></div>
 
+      <div class="sub-h">熱門課程 相片</div>
+      <div class="sub" style="margin-bottom:16px">在這裡新增的照片，會顯示在網站首頁「熱門課程」區塊（位置在「最新活動」下方）。</div>
+      <div class="add-photo-box">
+        <div class="field">
+          <label for="newGalleryCaption-hot_course">照片說明文字（選填）</label>
+          <input type="text" id="newGalleryCaption-hot_course" placeholder="例如：頌缽療癒體驗">
+        </div>
+        <div class="field">
+          <label for="newGalleryFile-hot_course">選擇照片</label>
+          <input type="file" id="newGalleryFile-hot_course" accept="image/*">
+        </div>
+        <button class="btn" id="addGalleryBtn-hot_course">上傳並新增</button>
+        <span class="msg" id="galleryAddMsg-hot_course" style="margin-left:12px"></span>
+      </div>
+      <div id="galleryPhotoList-hot_course"></div>
+
       <div class="sub-h">課程 相片</div>
       <div class="sub" style="margin-bottom:16px">在這裡新增的照片，會顯示在網站「課程方案」區塊裡。</div>
       <div class="add-photo-box">
@@ -466,9 +482,8 @@
   var SPECIFIC_IMAGE_KEYS = [
     { key: 'brand_poster_image', label: '品牌主視覺海報（首頁最上方，關於我們之前）' },
     { key: 'event_main_image', label: '活動主圖（現場體驗說明文字旁邊的圖片）' },
-    { key: 'event_secondary_image', label: '公益活動第二張圖片（精彩時刻・公益音樂下午茶海報）' },
-    { key: 'team_photo_image', label: '師資團隊合影（精彩時刻）' },
-    { key: 'health_biz_poster_image', label: '聲息智養AI輕創業主視覺海報（精彩時刻第三張＋聲息智養AI輕創業頁面）' }
+    { key: 'team_photo_image', label: '師資團隊合影（師資介紹下方）' },
+    { key: 'health_biz_poster_image', label: '聲息智養AI輕創業主視覺海報（聲息智養AI輕創業頁面）' }
   ];
 
   function loadPhotos(){
@@ -612,8 +627,8 @@
   }
 
   // -- 分類圖集：課程 / 師資 / 活動花絮 --
-  var GALLERY_CATEGORIES = ['course', 'teacher', 'highlight', 'health_biz', 'latest_events'];
-  var galleryCache = { course: [], teacher: [], highlight: [], health_biz: [] };
+  var GALLERY_CATEGORIES = ['hot_course', 'course', 'teacher', 'highlight', 'health_biz', 'latest_events'];
+  var galleryCache = { hot_course: [], course: [], teacher: [], highlight: [], health_biz: [], latest_events: [] };
 
   function loadGalleryPhotos(){
     GALLERY_CATEGORIES.forEach(function(cat){ loadGalleryPhotosFor(cat); });
