@@ -5578,6 +5578,11 @@ document.addEventListener('keydown', function(e) {
         rowEl = document.createElement("div");
         rowEl.className = "plan-cards-row pci-row";
       } else {
+        // 這個既有的靜態分類，如果原本唯一的靜態課程已經在 applyCourseDetails()
+        // 那一步被判定為「後台已刪除」而整區塊被隱藏（display:none），
+        // 現在既然併入了新課程、確定有東西可以顯示，就要把隱藏狀態解除，
+        // 不然卡片其實都在，區塊卻還是看不見。
+        existingSection.style.display = "";
         rowEl = existingSection.querySelector(".plan-cards-row");
         if (!rowEl) {
           rowEl = document.createElement("div");
