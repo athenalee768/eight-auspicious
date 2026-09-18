@@ -513,8 +513,16 @@
     }
     var ext = (toUpload.name.split('.').pop() || 'jpg').toLowerCase();
     var path = folder + '/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + ext;
-    var result = await sb.storage.from(STORAGE_BUCKET).upload(path, toUpload);
-    if (result.error) throw result.error;
+    var result;
+    try {
+      result = await sb.storage.from(STORAGE_BUCKET).upload(path, toUpload);
+      if (result.error) throw result.error;
+    } catch (err) {
+      // 常見的「Failed to fetch」多半是暫時的網路不穩，稍等一下自動重試一次再放棄
+      await new Promise(function (r) { setTimeout(r, 900); });
+      result = await sb.storage.from(STORAGE_BUCKET).upload(path, toUpload, { upsert: true });
+      if (result.error) throw result.error;
+    }
     var pub = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
     return pub.data.publicUrl;
   }
@@ -955,8 +963,14 @@
       try {
         var imageUrl = '';
         var imageFile = imageEl.files[0];
+        var imageUploadFailed = false;
         if (imageFile) {
-          imageUrl = await uploadImageFile(imageFile, 'course-detail');
+          try {
+            imageUrl = await uploadImageFile(imageFile, 'course-detail');
+          } catch (imgErr) {
+            console.error('新增課程時，圖片上傳失敗（將先建立課程，圖片可稍後於下方補傳）：', imgErr);
+            imageUploadFailed = true;
+          }
         }
 
         var table = isPlan ? 'membership_plans' : 'courses';
@@ -987,8 +1001,13 @@
         nameEl.value = ''; priceEl.value = ''; priceNoteEl.value = '';
         imageEl.value = ''; descEl.value = ''; featuresEl.value = '';
         newCourseCategoryCustomEl.value = ''; newCourseCategoryCustomEl.style.display = 'none';
-        msg.textContent = '已新增'; msg.className = 'msg ok';
-        setTimeout(function(){ msg.textContent=''; }, 2000);
+        if (imageUploadFailed) {
+          msg.textContent = '已新增課程，但圖片上傳失敗，請稍後在下方「目前課程／方案」找到這筆課程重新上傳圖片';
+          msg.className = 'msg err';
+        } else {
+          msg.textContent = '已新增'; msg.className = 'msg ok';
+          setTimeout(function(){ msg.textContent=''; }, 2000);
+        }
         loadCourses();
       } catch(e) {
         msg.textContent = '失敗：' + (e.message || e); msg.className = 'msg err';
