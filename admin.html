@@ -227,6 +227,49 @@
       <div class="sub" style="margin-bottom:16px">
         更換課程/方案的主圖、說明文字與特色列表。留空的欄位，網站會維持原本的文字/圖片，不會被覆蓋。
       </div>
+
+      <div class="sub-h">新增課程／方案</div>
+      <div class="sub" style="margin-bottom:16px">
+        新增後會自動出現在網站「課程方案」區塊最下方，成一組新的分類卡片。
+      </div>
+      <div class="add-photo-box">
+        <div class="field">
+          <label><input type="checkbox" id="newCourseIsPlan" style="width:auto;vertical-align:middle;margin-right:6px">這是「會員專屬方案」（而不是一般課程）</label>
+        </div>
+        <div class="field" id="newCourseCategoryField">
+          <label for="newCourseCategory">課程分類</label>
+          <select id="newCourseCategory"></select>
+          <input type="text" id="newCourseCategoryCustom" placeholder="請輸入新分類名稱" style="display:none;margin-top:8px">
+        </div>
+        <div class="field">
+          <label for="newCourseName">名稱</label>
+          <input type="text" id="newCourseName" placeholder="例如：頌缽初階體驗課">
+        </div>
+        <div class="field">
+          <label for="newCoursePrice">定價（選填，數字）</label>
+          <input type="number" id="newCoursePrice" placeholder="例如：1800">
+        </div>
+        <div class="field">
+          <label for="newCoursePriceNote">價格顯示文字（選填，一般課程適用，例如「$1800 / 堂」或「洽詢」）</label>
+          <input type="text" id="newCoursePriceNote" placeholder="留空則自動依定價顯示">
+        </div>
+        <div class="field">
+          <label for="newCourseImage">主圖（選填）</label>
+          <input type="file" id="newCourseImage" accept="image/*">
+        </div>
+        <div class="field">
+          <label for="newCourseDesc">說明文字（選填）</label>
+          <textarea id="newCourseDesc" rows="2" placeholder="課程/方案說明"></textarea>
+        </div>
+        <div class="field">
+          <label for="newCourseFeatures">特色列表（選填，一行一項）</label>
+          <textarea id="newCourseFeatures" rows="4" placeholder="例如：&#10;適合初學者&#10;60分鐘體驗"></textarea>
+        </div>
+        <button class="btn" id="addCourseBtn">新增課程</button>
+        <span class="msg" id="courseAddMsg" style="margin-left:12px"></span>
+      </div>
+
+      <div class="sub-h">目前課程／方案</div>
       <div id="coursesList"></div>
     </div>
 
@@ -741,10 +784,10 @@
     var list = document.getElementById('coursesList');
     list.innerHTML = '載入中...';
     var coursesRes = await sb.from('courses')
-      .select('id,name,category,image_url,description,features_text')
+      .select('id,name,category,image_url,description,features_text,sort_order')
       .order('sort_order', { ascending: true });
     var plansRes = await sb.from('membership_plans')
-      .select('id,name,image_url,description,features_text')
+      .select('id,name,image_url,description,features_text,sort_order')
       .order('sort_order', { ascending: true });
     if (coursesRes.error) { list.innerHTML = '載入失敗：' + coursesRes.error.message; return; }
     if (plansRes.error) { list.innerHTML = '載入失敗：' + plansRes.error.message; return; }
@@ -765,6 +808,33 @@
       }
       list.appendChild(renderCourseCard(row));
     });
+
+    populateNewCourseCategoryOptions();
+  }
+
+  // ---- 新增課程：分類下拉選單，用目前已有的課程分類自動列出，並保留「自訂分類」選項 ----
+  function populateNewCourseCategoryOptions(){
+    var sel = document.getElementById('newCourseCategory');
+    if (!sel) return;
+    var cats = [];
+    coursesCache.forEach(function(row){
+      if (row.table === 'courses' && row.category && cats.indexOf(row.category) === -1) {
+        cats.push(row.category);
+      }
+    });
+    var prevValue = sel.value;
+    sel.innerHTML = '';
+    cats.forEach(function(cat){
+      var opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      sel.appendChild(opt);
+    });
+    var customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = '➕ 自訂新分類…';
+    sel.appendChild(customOpt);
+    if (cats.indexOf(prevValue) !== -1) sel.value = prevValue;
   }
 
   function renderCourseCard(row){
@@ -788,6 +858,7 @@
         '</div>' +
         '<div class="photo-card-actions">' +
           '<button class="btn-small save">儲存</button>' +
+          '<button class="btn-small btn-danger del">刪除課程</button>' +
           '<span class="msg"></span>' +
         '</div>' +
       '</div>';
@@ -796,6 +867,21 @@
     var descInput = card.querySelector('.course-desc-input');
     var featInput = card.querySelector('.course-features-input');
     var msg = card.querySelector('.msg');
+
+    card.querySelector('.del').addEventListener('click', async function(){
+      if (!confirm('確定要刪除「' + row.name + '」嗎？刪除後網站上會立刻看不到這個課程／方案，此動作無法復原。')) return;
+      var btn = this;
+      btn.disabled = true;
+      msg.textContent = '刪除中...'; msg.className = 'msg';
+      try {
+        var result = await sb.from(row.table).delete().eq('id', row.id);
+        if (result.error) throw result.error;
+        loadCourses();
+      } catch(e) {
+        msg.textContent = '刪除失敗：' + (e.message || e); msg.className = 'msg err';
+        btn.disabled = false;
+      }
+    });
 
     card.querySelector('.save').addEventListener('click', async function(){
       var btn = this;
@@ -821,6 +907,94 @@
     });
 
     return card;
+  }
+
+  // ---- 新增課程／方案：表單互動與送出 ----
+  var newCourseIsPlanEl = document.getElementById('newCourseIsPlan');
+  var newCourseCategoryFieldEl = document.getElementById('newCourseCategoryField');
+  var newCourseCategoryEl = document.getElementById('newCourseCategory');
+  var newCourseCategoryCustomEl = document.getElementById('newCourseCategoryCustom');
+
+  if (newCourseIsPlanEl) {
+    newCourseIsPlanEl.addEventListener('change', function(){
+      newCourseCategoryFieldEl.style.display = this.checked ? 'none' : '';
+    });
+  }
+  if (newCourseCategoryEl) {
+    newCourseCategoryEl.addEventListener('change', function(){
+      newCourseCategoryCustomEl.style.display = (this.value === '__custom__') ? '' : 'none';
+    });
+  }
+
+  var addCourseBtnEl = document.getElementById('addCourseBtn');
+  if (addCourseBtnEl) {
+    addCourseBtnEl.addEventListener('click', async function(){
+      var msg = document.getElementById('courseAddMsg');
+      var isPlan = newCourseIsPlanEl.checked;
+      var nameEl = document.getElementById('newCourseName');
+      var priceEl = document.getElementById('newCoursePrice');
+      var priceNoteEl = document.getElementById('newCoursePriceNote');
+      var imageEl = document.getElementById('newCourseImage');
+      var descEl = document.getElementById('newCourseDesc');
+      var featuresEl = document.getElementById('newCourseFeatures');
+
+      var name = nameEl.value.trim();
+      if (!name) { msg.textContent = '請填寫名稱'; msg.className = 'msg err'; return; }
+
+      var category = '';
+      if (!isPlan) {
+        category = (newCourseCategoryEl.value === '__custom__')
+          ? newCourseCategoryCustomEl.value.trim()
+          : newCourseCategoryEl.value;
+        if (!category) { msg.textContent = '請選擇或輸入課程分類'; msg.className = 'msg err'; return; }
+      }
+
+      var btn = this;
+      btn.disabled = true;
+      msg.textContent = '新增中...'; msg.className = 'msg';
+      try {
+        var imageUrl = '';
+        var imageFile = imageEl.files[0];
+        if (imageFile) {
+          imageUrl = await uploadImageFile(imageFile, 'course-detail');
+        }
+
+        var table = isPlan ? 'membership_plans' : 'courses';
+        var sameTableRows = coursesCache.filter(function(r){ return r.table === table; });
+        var nextOrder = sameTableRows.length
+          ? Math.max.apply(null, sameTableRows.map(function(r){ return r.sort_order || 0; })) + 1
+          : 0;
+
+        var priceVal = priceEl.value.trim() ? Number(priceEl.value.trim()) : 0;
+
+        var payload = {
+          name: name,
+          image_url: imageUrl || null,
+          description: descEl.value.trim() || null,
+          features_text: featuresEl.value.trim() || null,
+          price: priceVal,
+          sort_order: nextOrder,
+          is_active: true
+        };
+        if (!isPlan) {
+          payload.category = category;
+          payload.price_note = priceNoteEl.value.trim() || null;
+        }
+
+        var result = await sb.from(table).insert([payload]);
+        if (result.error) throw result.error;
+
+        nameEl.value = ''; priceEl.value = ''; priceNoteEl.value = '';
+        imageEl.value = ''; descEl.value = ''; featuresEl.value = '';
+        newCourseCategoryCustomEl.value = ''; newCourseCategoryCustomEl.style.display = 'none';
+        msg.textContent = '已新增'; msg.className = 'msg ok';
+        setTimeout(function(){ msg.textContent=''; }, 2000);
+        loadCourses();
+      } catch(e) {
+        msg.textContent = '失敗：' + (e.message || e); msg.className = 'msg err';
+      }
+      btn.disabled = false;
+    });
   }
 
   // ---- 健康輕創業：說明會場次管理（讀寫 briefings 表） ----

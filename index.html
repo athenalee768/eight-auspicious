@@ -2096,6 +2096,21 @@ nav {
   border-top: 1px solid rgba(201,168,76,.2);
   flex-shrink: 0;
 }
+/* 後台新增的課程／方案卡片：在圖片下方顯示名稱與價格，方便辨識 */
+.pci-extra-caption {
+  padding: 10px 12px 0;
+  text-align: center;
+}
+.pci-extra-caption .pci-extra-name {
+  color: var(--gold-l);
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.pci-extra-caption .pci-extra-price {
+  color: var(--text-m);
+  font-size: 12px;
+  margin-top: 2px;
+}
 .pci-btn {
   flex: 1;
   padding: 14px 8px;
@@ -3637,6 +3652,7 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
         </div>
       </div>
     </div>
+    <div id="extra-courses-container"></div>
     <div class="extra-gallery-wrap" id="course-extra-wrap" style="display:none">
       <div class="sh" style="margin-bottom:24px">
         <p class="ssub reveal">課 程 實 況</p>
@@ -5115,11 +5131,13 @@ document.addEventListener('keydown', function(e) {
     return '<div class="modal-section"><div class="modal-section-title">課程說明</div>' + p.outerHTML + "</div>";
   }
 
-  function applyCourseDetails(courses, plans) {
+  function applyCourseDetails(courses, plans, dataOk) {
     var detailMap = {};
     (courses || []).concat(plans || []).forEach(function (r) {
       detailMap[stripWs(r.name)] = r;
     });
+
+    var touchedSeries = {};
 
     document.querySelectorAll(".pci-btn-detail").forEach(function (btn) {
       var m = (btn.getAttribute("onclick") || "").match(/openModal\('([^']+)'\)/);
@@ -5128,7 +5146,20 @@ document.addEventListener('keydown', function(e) {
       var titleEl = document.getElementById(modalId + "-title");
       if (!titleEl) return;
       var row = detailMap[stripWs(titleEl.textContent)];
-      if (!row) return;
+
+      if (!row) {
+        // 後台已將這個課程／方案刪除：資料真的成功讀取（dataOk）卻找不到對應資料時，
+        // 才把這張卡片隱藏起來；資料讀取失敗時絕不隱藏，避免網路不穩就整排消失。
+        if (dataOk) {
+          var cardToHide = btn.closest(".plan-card-img");
+          if (cardToHide) {
+            cardToHide.style.display = "none";
+            var seriesToCheck = cardToHide.closest(".plan-series");
+            if (seriesToCheck) touchedSeries[seriesToCheck.id || Math.random()] = seriesToCheck;
+          }
+        }
+        return;
+      }
 
       // 換主圖：同時更新卡片縮圖與詳情彈窗大圖
       if (row.image_url) {
@@ -5158,20 +5189,225 @@ document.addEventListener('keydown', function(e) {
         }
       }
     });
+
+    // 如果整個系列底下的課程都被刪除了，連同系列標題一起隱藏，避免留下空標題
+    Object.keys(touchedSeries).forEach(function (key) {
+      var series = touchedSeries[key];
+      var stillVisible = Array.prototype.filter.call(
+        series.querySelectorAll(".plan-card-img"),
+        function (el) { return el.style.display !== "none"; }
+      ).length;
+      series.style.display = stillVisible ? "" : "none";
+    });
   }
 
   async function loadPricingData() {
     try {
       var coursesRes = await sbClient.from("courses").select("id,name,category,price,price_note,image_url,description,features_text").eq("is_active", true).order("sort_order");
       var plansRes = await sbClient.from("membership_plans").select("id,name,price,image_url,description,features_text").eq("is_active", true).order("sort_order");
+      if (coursesRes.error) throw coursesRes.error;
+      if (plansRes.error) throw plansRes.error;
       var courses = coursesRes.data || [];
       var plans = plansRes.data || [];
       applyPriceBadges(courses, plans);
       populateCourseSelect(courses, plans);
-      applyCourseDetails(courses, plans);
+      applyCourseDetails(courses, plans, true);
+      renderExtraCourses(courses, plans);
     } catch (err) {
       console.error("讀取課程/方案資料失敗：", err);
     }
+  }
+
+  // ---- 2c) 課程管理：後台新增的全新課程／方案（在既有課程卡片中找不到對應項目）----
+  // 這些會自動渲染成一組新的課程卡片＋詳情彈窗，附加在原本課程區塊的最下方。
+  function renderExtraCourses(courses, plans) {
+    var container = document.getElementById("extra-courses-container");
+    if (!container) return;
+    container.innerHTML = "";
+
+    var staticNames = {};
+    document.querySelectorAll(".modal-title").forEach(function (el) {
+      staticNames[stripWs(el.textContent)] = true;
+    });
+
+    var groups = {}; // category -> [{row, isPlan}]
+    var order = [];
+    (courses || []).forEach(function (c) {
+      if (staticNames[stripWs(c.name)]) return;
+      var cat = c.category || "其他課程";
+      if (!groups[cat]) { groups[cat] = []; order.push(cat); }
+      groups[cat].push({ row: c, isPlan: false });
+    });
+    (plans || []).forEach(function (p) {
+      if (staticNames[stripWs(p.name)]) return;
+      var cat = "會員專屬方案";
+      if (!groups[cat]) { groups[cat] = []; order.push(cat); }
+      groups[cat].push({ row: p, isPlan: true });
+    });
+
+    if (!order.length) return;
+
+    var BLANK_IMG = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+
+    order.forEach(function (cat) {
+      var items = groups[cat];
+      var seriesEl = document.createElement("div");
+      seriesEl.className = "plan-series reveal visible";
+
+      var headerEl = document.createElement("div");
+      headerEl.className = "plan-series-header";
+      var iconEl = document.createElement("span");
+      iconEl.className = "plan-series-icon";
+      iconEl.textContent = "🌟";
+      var titleEl = document.createElement("span");
+      titleEl.className = "plan-series-title";
+      titleEl.textContent = cat.split("").join(" "); // 比照原本標題逐字加空白的排版風格
+      headerEl.appendChild(iconEl);
+      headerEl.appendChild(titleEl);
+      seriesEl.appendChild(headerEl);
+
+      var rowEl = document.createElement("div");
+      var rowClass = "plan-cards-row pci-row";
+      if (items.length === 1) rowClass += " pci-row-1";
+      else if (items.length === 2) rowClass += " pci-row-2";
+      else if (items.length === 3) rowClass += " pci-row-3";
+      rowEl.className = rowClass;
+
+      items.forEach(function (item, idx) {
+        var row = item.row;
+        var modalId = "modal-extra-" + String(row.id).replace(/[^a-zA-Z0-9]/g, "");
+
+        var cardEl = document.createElement("div");
+        cardEl.className = "plan-card-img reveal visible";
+
+        var imgWrap = document.createElement("div");
+        imgWrap.className = "pci-img-wrap";
+        var imgEl = document.createElement("img");
+        imgEl.className = "pci-img";
+        imgEl.src = row.image_url || BLANK_IMG;
+        imgEl.alt = row.name || "";
+        imgEl.loading = "lazy";
+        var overlayEl = document.createElement("div");
+        overlayEl.className = "pci-overlay";
+        imgWrap.appendChild(imgEl);
+        imgWrap.appendChild(overlayEl);
+        cardEl.appendChild(imgWrap);
+
+        var captionEl = document.createElement("div");
+        captionEl.className = "pci-extra-caption";
+        var nameEl = document.createElement("div");
+        nameEl.className = "pci-extra-name";
+        nameEl.textContent = row.name || "";
+        captionEl.appendChild(nameEl);
+        var priceText = item.isPlan
+          ? (row.price && row.price > 0 ? ("$" + row.price + " / 月") : "洽詢")
+          : (row.price_note || (row.price ? ("$" + row.price) : "洽詢"));
+        var priceEl = document.createElement("div");
+        priceEl.className = "pci-extra-price";
+        priceEl.textContent = priceText;
+        captionEl.appendChild(priceEl);
+        cardEl.appendChild(captionEl);
+
+        var actionEl = document.createElement("div");
+        actionEl.className = "pci-action";
+        var lineA = document.createElement("a");
+        lineA.href = "https://lin.ee/Q8XKTw6";
+        lineA.className = "pci-btn pci-btn-line";
+        lineA.target = "_blank";
+        lineA.rel = "noopener";
+        lineA.textContent = "💬 LINE 洽詢";
+        var detailBtn = document.createElement("button");
+        detailBtn.className = "pci-btn pci-btn-detail";
+        detailBtn.textContent = "詳 情";
+        detailBtn.addEventListener("click", function () { window.openModal(modalId); });
+        actionEl.appendChild(lineA);
+        actionEl.appendChild(detailBtn);
+        cardEl.appendChild(actionEl);
+
+        rowEl.appendChild(cardEl);
+
+        // 建立對應的詳情彈窗，附加在 body 最後面
+        var modalOverlay = document.createElement("div");
+        modalOverlay.id = modalId;
+        modalOverlay.className = "modal-overlay";
+        modalOverlay.setAttribute("role", "dialog");
+        modalOverlay.setAttribute("aria-modal", "true");
+        modalOverlay.setAttribute("aria-labelledby", modalId + "-title");
+
+        var closeBtn = document.createElement("button");
+        closeBtn.className = "modal-close";
+        closeBtn.setAttribute("aria-label", "關閉");
+        closeBtn.textContent = "✕";
+        closeBtn.addEventListener("click", function () { window.closeModal(modalId); });
+        modalOverlay.appendChild(closeBtn);
+
+        var modalBox = document.createElement("div");
+        modalBox.className = "modal-box";
+
+        var modalTop = document.createElement("div");
+        modalTop.className = "modal-top";
+        if (row.image_url) {
+          var modalImgEl = document.createElement("img");
+          modalImgEl.className = "modal-img";
+          modalImgEl.src = row.image_url;
+          modalImgEl.alt = row.name || "";
+          modalTop.appendChild(modalImgEl);
+        }
+        modalBox.appendChild(modalTop);
+
+        var modalHeader = document.createElement("div");
+        modalHeader.className = "modal-header";
+        var modalNum = document.createElement("div");
+        modalNum.className = "modal-num";
+        modalNum.textContent = String(idx + 1).padStart(2, "0");
+        var modalTitleEl = document.createElement("div");
+        modalTitleEl.className = "modal-title";
+        modalTitleEl.id = modalId + "-title";
+        modalTitleEl.textContent = row.name || "";
+        var modalSub = document.createElement("div");
+        modalSub.className = "modal-sub";
+        modalSub.textContent = priceText;
+        modalHeader.appendChild(modalNum);
+        modalHeader.appendChild(modalTitleEl);
+        modalHeader.appendChild(modalSub);
+        modalBox.appendChild(modalHeader);
+
+        var modalBody = document.createElement("div");
+        modalBody.className = "modal-body";
+        var bodyHtml = "";
+        if (row.description) bodyHtml += buildDescriptionSection(row.description);
+        if (row.features_text) bodyHtml += buildFeaturesSection(row.features_text);
+        modalBody.innerHTML = bodyHtml;
+        modalBox.appendChild(modalBody);
+
+        var ctaRow = document.createElement("div");
+        ctaRow.className = "modal-cta-row";
+        var ctaLine = document.createElement("a");
+        ctaLine.href = "https://lin.ee/Q8XKTw6";
+        ctaLine.className = "modal-btn-line";
+        ctaLine.target = "_blank";
+        ctaLine.textContent = "💬 加入 LINE 洽詢";
+        var ctaFb = document.createElement("a");
+        ctaFb.href = "https://www.facebook.com/share/1CU7UXaZgC/?mibextid=wwXIfr";
+        ctaFb.className = "modal-btn-inquiry";
+        ctaFb.target = "_blank";
+        ctaFb.textContent = "📘 Facebook";
+        ctaRow.appendChild(ctaLine);
+        ctaRow.appendChild(ctaFb);
+        modalBox.appendChild(ctaRow);
+
+        modalOverlay.appendChild(modalBox);
+        document.body.appendChild(modalOverlay);
+
+        // 比照原本靜態彈窗的「點背景關閉」行為
+        modalOverlay.addEventListener("click", function (e) { if (e.target === modalOverlay) window.closeModal(modalId); });
+        modalOverlay.addEventListener("touchstart", function (e) { if (e.target === modalOverlay) { e.preventDefault(); window.closeModal(modalId); } }, { passive: false });
+        modalOverlay.addEventListener("pointerdown", function (e) { if (e.target === modalOverlay) window.closeModal(modalId); });
+      });
+
+      seriesEl.appendChild(rowEl);
+      container.appendChild(seriesEl);
+    });
   }
 
   // ---- 3) 報名表單送出 -> 寫入 Supabase registrations 表 ----
