@@ -5147,6 +5147,19 @@ document.addEventListener('keydown', function(e) {
   function i18nText(zh, en) {
     return (en && en.trim()) ? en : (zh || "");
   }
+  var CATEGORY_EN_MAP = {
+    "體驗入門系列": "Introductory Series",
+    "完整療癒系列": "Complete Healing Series",
+    "會員專屬方案": "Membership Plans",
+    "深度療癒系列": "Deep Healing Series",
+    "專業培訓系列": "Professional Training",
+    "團體紓壓方案": "Group Relaxation Programs",
+    "塔羅解讀師": "Tarot Reader",
+    "其他課程": "Other Courses"
+  };
+  function categoryEn(cat) {
+    return CATEGORY_EN_MAP[cat] || cat;
+  }
 
   // ---- 1) 動態價格徽章：抓 courses + membership_plans，比對每個 modal 的標題 ----
   function applyPriceBadges(courses, plans) {
@@ -5533,7 +5546,7 @@ document.addEventListener('keydown', function(e) {
       iconEl.textContent = "🌟";
       var titleEl = document.createElement("span");
       titleEl.className = "plan-series-title";
-      titleEl.innerHTML = i18nHtml(cat.split("").join(" "), cat); // 比照原本標題逐字加空白的排版風格
+      titleEl.innerHTML = i18nHtml(cat.split("").join(" "), categoryEn(cat)); // 比照原本標題逐字加空白的排版風格
       headerEl.appendChild(iconEl);
       headerEl.appendChild(titleEl);
       seriesEl.appendChild(headerEl);
