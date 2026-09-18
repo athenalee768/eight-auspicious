@@ -60,6 +60,13 @@ nav.scrolled{background:rgba(11,31,58,.96);backdrop-filter:blur(20px);padding:12
 .nav-links a:hover{color:var(--gold-l)}.nav-links a:hover::after{right:0}
 .nav-cta{background:transparent;border:1px solid var(--gold);color:var(--gold-l);padding:9px 22px;font-size:24px;letter-spacing:2px;cursor:pointer;transition:all .3s;font-family:'Noto Serif TC',serif;text-decoration:none;display:inline-block}
 .nav-cta:hover{background:var(--gold);color:var(--navy)}
+@media (min-width:1025px){
+  body.lang-en .nav-links{gap:clamp(8px,1.3vw,20px)}
+  body.lang-en .nav-links a{font-size:clamp(11px,.95vw,15px);letter-spacing:.2px}
+  body.lang-en .nav-cta{font-size:clamp(11px,.85vw,14px);padding:7px clamp(10px,1.1vw,16px)}
+  body.lang-en .nav-logo-cn{font-size:clamp(20px,1.9vw,26px)}
+  body.lang-en .nav-logo-en{font-size:clamp(14px,1.4vw,19px)}
+}
 .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none}
 .i18n-en{display:none}
 body.lang-en .i18n-zh{display:none}
