@@ -36,6 +36,7 @@
   .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
   .tabs{display:flex;gap:8px;margin-bottom:24px;border-bottom:1px solid var(--navy-l)}
   .tab{padding:10px 20px;cursor:pointer;color:var(--cream);opacity:.6;letter-spacing:2px;font-size:15px;border-bottom:2px solid transparent}
+  #galleryPhotoList-holiday .photo-card-key,#galleryPhotoList-holiday input[type=text],#galleryPhotoList-holiday .save{display:none}
   .tab.active{opacity:1;color:var(--gold-l);border-bottom-color:var(--gold)}
   .panel{display:none}
   .panel.active{display:block}
@@ -141,6 +142,19 @@
       <div class="sub-h">特定圖片</div>
       <div class="sub" style="margin-bottom:16px">更換網站上指定位置的圖片（例如活動主圖）。</div>
       <div id="specificPhotoList"></div>
+
+      <div class="sub-h">節日祝賀 相片</div>
+      <div class="sub" style="margin-bottom:16px">節日時上傳祝賀圖（例如中秋、新年），會顯示在網站首頁最上方大圖的正下方，不顯示任何標題或文字。節日過後按「刪除」，該區塊會整個消失，不會留下空白。可同時放多張，用上移／下移調整順序。</div>
+      <div class="add-photo-box">
+        <input type="hidden" id="newGalleryCaption-holiday" value="">
+        <div class="field">
+          <label for="newGalleryFile-holiday">選擇照片</label>
+          <input type="file" id="newGalleryFile-holiday" accept="image/*">
+        </div>
+        <button class="btn" id="addGalleryBtn-holiday">上傳並新增</button>
+        <span class="msg" id="galleryAddMsg-holiday" style="margin-left:12px"></span>
+      </div>
+      <div id="galleryPhotoList-holiday"></div>
 
       <div class="sub-h">熱門課程 相片</div>
       <div class="sub" style="margin-bottom:16px">在這裡新增的照片，會顯示在網站首頁「熱門課程」區塊（位置在「最新活動」下方）。</div>
@@ -761,8 +775,8 @@
   }
 
   // -- 分類圖集：課程 / 師資 / 活動花絮 --
-  var GALLERY_CATEGORIES = ['hot_course', 'course', 'teacher', 'highlight', 'health_biz', 'latest_events'];
-  var galleryCache = { hot_course: [], course: [], teacher: [], highlight: [], health_biz: [], latest_events: [] };
+  var GALLERY_CATEGORIES = ['holiday', 'hot_course', 'course', 'teacher', 'highlight', 'health_biz', 'latest_events'];
+  var galleryCache = { holiday: [], hot_course: [], course: [], teacher: [], highlight: [], health_biz: [], latest_events: [] };
 
   function loadGalleryPhotos(){
     GALLERY_CATEGORIES.forEach(function(cat){ loadGalleryPhotosFor(cat); });
