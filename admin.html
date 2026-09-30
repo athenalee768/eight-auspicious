@@ -172,48 +172,48 @@
       </div>
       <div id="galleryPhotoList-hot_course"></div>
 
-      <div class="sub-h">課程 相片</div>
-      <div class="sub" style="margin-bottom:16px">在這裡新增的照片，會顯示在網站「課程方案」區塊裡。</div>
+      <div class="sub-h">課程 相片／影片</div>
+      <div class="sub" style="margin-bottom:16px">在這裡新增的照片或影片，會顯示在網站「課程方案」區塊裡。</div>
       <div class="add-photo-box">
         <div class="field">
-          <label for="newGalleryCaption-course">照片說明文字（選填）</label>
+          <label for="newGalleryCaption-course">說明文字（選填）</label>
           <input type="text" id="newGalleryCaption-course" placeholder="例如：頌缽課程實況">
         </div>
         <div class="field">
-          <label for="newGalleryFile-course">選擇照片</label>
-          <input type="file" id="newGalleryFile-course" accept="image/*">
+          <label for="newGalleryFile-course">選擇照片或影片</label>
+          <input type="file" id="newGalleryFile-course" accept="image/*,video/*">
         </div>
         <button class="btn" id="addGalleryBtn-course">上傳並新增</button>
         <span class="msg" id="galleryAddMsg-course" style="margin-left:12px"></span>
       </div>
       <div id="galleryPhotoList-course"></div>
 
-      <div class="sub-h">師資 相片</div>
-      <div class="sub" style="margin-bottom:16px">在這裡新增的照片，會顯示在網站「師資介紹」區塊裡。</div>
+      <div class="sub-h">師資 相片／影片</div>
+      <div class="sub" style="margin-bottom:16px">在這裡新增的照片或影片，會顯示在網站「師資介紹」區塊裡。</div>
       <div class="add-photo-box">
         <div class="field">
-          <label for="newGalleryCaption-teacher">照片說明文字（選填）</label>
+          <label for="newGalleryCaption-teacher">說明文字（選填）</label>
           <input type="text" id="newGalleryCaption-teacher" placeholder="例如：師資團隊合照">
         </div>
         <div class="field">
-          <label for="newGalleryFile-teacher">選擇照片</label>
-          <input type="file" id="newGalleryFile-teacher" accept="image/*">
+          <label for="newGalleryFile-teacher">選擇照片或影片</label>
+          <input type="file" id="newGalleryFile-teacher" accept="image/*,video/*">
         </div>
         <button class="btn" id="addGalleryBtn-teacher">上傳並新增</button>
         <span class="msg" id="galleryAddMsg-teacher" style="margin-left:12px"></span>
       </div>
       <div id="galleryPhotoList-teacher"></div>
 
-      <div class="sub-h">活動花絮 相片</div>
-      <div class="sub" style="margin-bottom:16px">在這裡新增的照片，會顯示在網站「活動花絮」區塊裡。</div>
+      <div class="sub-h">活動花絮 相片／影片</div>
+      <div class="sub" style="margin-bottom:16px">在這裡新增的照片或影片，會顯示在網站「活動花絮」區塊裡。</div>
       <div class="add-photo-box">
         <div class="field">
-          <label for="newGalleryCaption-highlight">照片說明文字（選填）</label>
+          <label for="newGalleryCaption-highlight">說明文字（選填）</label>
           <input type="text" id="newGalleryCaption-highlight" placeholder="例如：頌缽療癒示範">
         </div>
         <div class="field">
-          <label for="newGalleryFile-highlight">選擇照片</label>
-          <input type="file" id="newGalleryFile-highlight" accept="image/*">
+          <label for="newGalleryFile-highlight">選擇照片或影片</label>
+          <input type="file" id="newGalleryFile-highlight" accept="image/*,video/*">
         </div>
         <button class="btn" id="addGalleryBtn-highlight">上傳並新增</button>
         <span class="msg" id="galleryAddMsg-highlight" style="margin-left:12px"></span>
@@ -803,10 +803,12 @@
     var card = document.createElement('div');
     card.className = 'photo-card';
     card.innerHTML =
-      '<img src="' + row.url + '">' +
+      (row.media_type === 'video'
+        ? '<video src="' + row.url + '" muted controls style="width:100%;display:block;max-height:160px;object-fit:cover"></video>'
+        : '<img src="' + row.url + '">') +
       '<div class="photo-card-body">' +
-        '<div class="photo-card-key">照片說明</div>' +
-        '<input type="text" value="' + (row.caption || '').replace(/"/g,'&quot;') + '" placeholder="照片說明文字">' +
+        '<div class="photo-card-key">' + (row.media_type === 'video' ? '影片說明' : '照片說明') + '</div>' +
+        '<input type="text" value="' + (row.caption || '').replace(/"/g,'&quot;') + '" placeholder="說明文字">' +
         '<div class="photo-card-actions">' +
           '<button class="btn-small save">儲存說明</button>' +
           '<button class="btn-small up"' + (idx === 0 ? ' disabled' : '') + '>上移</button>' +
@@ -857,18 +859,19 @@
       var captionInput = document.getElementById('newGalleryCaption-' + category);
       var msg = document.getElementById('galleryAddMsg-' + category);
       var file = fileInput.files[0];
-      if (!file) { msg.textContent = '請先選擇照片'; msg.className = 'msg err'; return; }
+      if (!file) { msg.textContent = '請先選擇照片或影片'; msg.className = 'msg err'; return; }
       var btn = this;
       btn.disabled = true;
       msg.textContent = '上傳中...'; msg.className = 'msg';
       try {
+        var mediaType = file.type && file.type.indexOf('video') === 0 ? 'video' : 'image';
         var url = await uploadImageFile(file, 'gallery-' + category);
         var cache = galleryCache[category];
         var nextOrder = cache.length
           ? Math.max.apply(null, cache.map(function(r){ return r.sort_order; })) + 1
           : 0;
         var insertResult = await sb.from('gallery_images').insert([{
-          url: url, caption: captionInput.value.trim(), category: category, sort_order: nextOrder
+          url: url, caption: captionInput.value.trim(), category: category, sort_order: nextOrder, media_type: mediaType
         }]);
         if (insertResult.error) throw insertResult.error;
         fileInput.value = '';

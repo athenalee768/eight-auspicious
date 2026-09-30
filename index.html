@@ -5827,10 +5827,20 @@ document.addEventListener('keydown', function(e) {
       frame.className = "hl-frame";
       frame.style.aspectRatio = "4 / 3";
       frame.style.background = "#0b1f3a";
-      var img = document.createElement("img");
-      img.src = r.url;
-      img.alt = r.caption || "活動花絮";
-      img.loading = "lazy";
+      var img;
+      if (r.media_type === "video") {
+        img = document.createElement("video");
+        img.src = r.url;
+        img.setAttribute("controls", "");
+        img.setAttribute("playsinline", "");
+        img.setAttribute("preload", "metadata");
+        img.muted = true;
+      } else {
+        img = document.createElement("img");
+        img.src = r.url;
+        img.alt = r.caption || "活動花絮";
+        img.loading = "lazy";
+      }
       img.className = "hl-img";
       img.style.objectFit = "contain";
       var overlay = document.createElement("div");
@@ -5853,10 +5863,20 @@ document.addEventListener('keydown', function(e) {
       var frame = document.createElement("div");
       frame.className = "extra-gallery-frame";
       frame.style.background = "#0b1f3a";
-      var img = document.createElement("img");
-      img.src = r.url;
-      img.alt = r.caption || "";
-      img.loading = "lazy";
+      var img;
+      if (r.media_type === "video") {
+        img = document.createElement("video");
+        img.src = r.url;
+        img.setAttribute("controls", "");
+        img.setAttribute("playsinline", "");
+        img.setAttribute("preload", "metadata");
+        img.muted = true;
+      } else {
+        img = document.createElement("img");
+        img.src = r.url;
+        img.alt = r.caption || "";
+        img.loading = "lazy";
+      }
       img.className = "extra-gallery-img";
       img.style.objectFit = "contain";
       frame.appendChild(img);
@@ -5897,7 +5917,7 @@ document.addEventListener('keydown', function(e) {
     try {
       var res = await sbClient
         .from("gallery_images")
-        .select("id,url,caption,category,sort_order")
+        .select("id,url,caption,category,sort_order,media_type")
         .order("sort_order", { ascending: true });
       if (res.error) throw res.error;
       var rows = res.data || [];
