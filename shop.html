@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>八吉祥購物商城</title>
+<meta name="description" content="八吉祥音樂工作室購物商城：頌缽、療癒音樂與身心靈好物。會員與經銷商享專屬優惠價。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --gold:#C9A84C;--gold-l:#E8CB7A;--gold-p:#F5E6B8;--gold-d:#8B6914;
+    --cream:#FAF6EE;--navy:#0B1F3A;--navy-m:#163354;--navy-l:#1E4470;
+    --ok:#8FD19E;--err:#E08A8A;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:'Noto Sans TC','微軟正黑體','Microsoft JhengHei','PingFang TC',sans-serif;background:var(--navy);color:var(--cream);min-height:100vh;line-height:1.6}
+  a{color:var(--gold-l)}
+  button{font-family:inherit}
+  .serif{font-family:'Noto Serif TC','Songti TC',serif}
+
+  /* 頂部 */
+  header{position:sticky;top:0;z-index:50;background:rgba(11,31,58,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--navy-l)}
+  .bar{max-width:1180px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:16px}
+  .brand{font-family:'Noto Serif TC',serif;font-size:22px;letter-spacing:4px;color:var(--gold-l);text-decoration:none;font-weight:400;white-space:nowrap}
+  .back{font-size:13px;color:var(--cream);opacity:.65;text-decoration:none;letter-spacing:1px;white-space:nowrap}
+  .back:hover{opacity:1;color:var(--gold-l)}
+  .spacer{flex:1}
+  .tier{font-size:12px;letter-spacing:1px;padding:3px 10px;border:1px solid var(--gold-d);color:var(--gold-p);white-space:nowrap}
+  .tier.member{border-color:var(--gold);color:var(--gold-l)}
+  .tier.dealer{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--navy);border-color:var(--gold);font-weight:700}
+  .hbtn{background:transparent;border:1px solid var(--gold-d);color:var(--cream);padding:7px 14px;font-size:14px;letter-spacing:1px;cursor:pointer;white-space:nowrap}
+  .hbtn:hover{border-color:var(--gold);color:var(--gold-l)}
+  .cart-count{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;background:var(--gold);color:var(--navy);font-size:12px;font-weight:700;border-radius:10px;text-align:center}
+
+  /* 主體 */
+  .wrap{max-width:1180px;margin:0 auto;padding:36px 20px 90px}
+  .hero{text-align:center;padding:24px 0 8px}
+  .hero h1{font-family:'Noto Serif TC',serif;font-weight:300;font-size:clamp(28px,5vw,44px);letter-spacing:8px;color:var(--gold-l);margin:0 0 10px}
+  .hero p{margin:0;opacity:.75;letter-spacing:2px;font-size:15px}
+  .notice{margin:26px auto 8px;max-width:760px;border:1px solid var(--gold-d);background:var(--navy-m);padding:14px 18px;font-size:14.5px;text-align:center}
+  .notice b{color:var(--gold-l)}
+  .notice .link{background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font-size:inherit;padding:0}
+  .notice.warn{border-color:var(--err);color:var(--err)}
+  .notice.ok{border-color:var(--ok)}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:26px 0 30px}
+  .chip{background:transparent;border:1px solid var(--navy-l);color:var(--cream);padding:6px 18px;font-size:14px;letter-spacing:1px;cursor:pointer;opacity:.8}
+  .chip.active{border-color:var(--gold);color:var(--gold-l);opacity:1}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px}
+  .pcard{background:var(--navy-m);border:1px solid var(--navy-l);display:flex;flex-direction:column;transition:border-color .25s,transform .25s}
+  .pcard:hover{border-color:var(--gold);transform:translateY(-3px)}
+  .pimg{aspect-ratio:1/1;background:var(--navy);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;position:relative}
+  .pimg img{width:100%;height:100%;object-fit:cover;display:block}
+  .pimg .ph{font-family:'Noto Serif TC',serif;font-size:42px;color:var(--gold-d);letter-spacing:6px}
+  .soldout{position:absolute;inset:0;background:rgba(11,31,58,.7);display:flex;align-items:center;justify-content:center;font-size:18px;letter-spacing:6px;color:var(--gold-p)}
+  .pbody{padding:16px 16px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .pname{font-size:16px;font-weight:500;cursor:pointer;line-height:1.45}
+  .pcat{font-size:12px;color:var(--gold-p);opacity:.7;letter-spacing:1px}
+  .price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:auto}
+  .price .now{font-size:21px;color:var(--gold-l);font-weight:500}
+  .price .was{font-size:13px;opacity:.55;text-decoration:line-through}
+  .price .tag{font-size:11px;border:1px solid var(--gold-d);color:var(--gold-p);padding:0 6px;letter-spacing:1px}
+  .low{font-size:12px;color:var(--err)}
+  .btn{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--navy);border:none;padding:11px 22px;font-size:15px;letter-spacing:2px;font-weight:700;cursor:pointer}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.block{width:100%}
+  .btn-o{background:transparent;border:1px solid var(--gold);color:var(--gold-l);padding:9px 18px;font-size:14px;letter-spacing:1px;cursor:pointer}
+  .btn-o:disabled{opacity:.45;cursor:not-allowed}
+  .empty{text-align:center;opacity:.65;padding:60px 0;letter-spacing:2px}
+
+  /* 彈窗 */
+  .overlay{position:fixed;inset:0;background:rgba(3,10,20,.72);z-index:100;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+  .overlay.open{display:flex}
+  .modal{background:var(--navy-m);border:1px solid var(--gold);width:100%;max-width:520px;padding:28px 26px 26px;position:relative}
+  .modal.wide{max-width:860px}
+  .modal h2{font-family:'Noto Serif TC',serif;font-weight:400;letter-spacing:4px;color:var(--gold-l);margin:0 0 18px;font-size:22px}
+  .x{position:absolute;right:12px;top:8px;background:none;border:none;color:var(--cream);font-size:28px;cursor:pointer;opacity:.7;line-height:1}
+  .x:hover{opacity:1}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--gold-p);letter-spacing:1px;margin-bottom:5px}
+  .field input,.field textarea,.field select{width:100%;background:var(--navy);border:1px solid var(--gold-d);color:var(--cream);padding:10px 12px;font-size:15px;font-family:inherit}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--gold-l)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .msg{margin-top:12px;font-size:14px;min-height:20px}
+  .msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+  .tabs2{display:flex;border-bottom:1px solid var(--navy-l);margin-bottom:20px}
+  .tabs2 button{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--cream);opacity:.6;padding:10px;font-size:15px;letter-spacing:3px;cursor:pointer}
+  .tabs2 button.active{opacity:1;color:var(--gold-l);border-bottom-color:var(--gold)}
+  .small-link{background:none;border:none;color:var(--gold-p);opacity:.75;text-decoration:underline;cursor:pointer;font-size:13px;padding:0;margin-top:6px}
+
+  /* 商品詳情 */
+  .detail{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+  .detail .pimg{cursor:default}
+  .detail h2{margin-bottom:6px}
+  .desc{white-space:pre-wrap;opacity:.88;font-size:14.5px;margin:14px 0}
+  .qty{display:inline-flex;align-items:center;border:1px solid var(--gold-d)}
+  .qty button{background:none;border:none;color:var(--cream);width:34px;height:34px;font-size:18px;cursor:pointer}
+  .qty span{min-width:38px;text-align:center}
+
+  /* 購物車抽屜 */
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--navy-m);border-left:1px solid var(--gold);z-index:110;transform:translateX(100%);transition:transform .3s;display:flex;flex-direction:column}
+  .drawer.open{transform:none}
+  .drawer-h{padding:20px 22px;border-bottom:1px solid var(--navy-l);display:flex;justify-content:space-between;align-items:center}
+  .drawer-h h2{margin:0;font-family:'Noto Serif TC',serif;font-weight:400;letter-spacing:4px;color:var(--gold-l);font-size:20px}
+  .drawer-b{flex:1;overflow-y:auto;padding:8px 22px}
+  .drawer-f{padding:18px 22px;border-top:1px solid var(--navy-l)}
+  .citem{display:grid;grid-template-columns:64px 1fr auto;gap:12px;padding:14px 0;border-bottom:1px solid var(--navy-l);align-items:center}
+  .citem .pimg{aspect-ratio:1/1;width:64px;cursor:default}
+  .citem .pimg .ph{font-size:16px;letter-spacing:0}
+  .citem .nm{font-size:14.5px;line-height:1.4}
+  .citem .pr{font-size:13px;color:var(--gold-p);margin-top:2px}
+  .citem .rm{background:none;border:none;color:var(--err);font-size:12px;cursor:pointer;padding:0;margin-top:6px}
+  .sumrow{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px}
+  .sumrow.total{font-size:18px;color:var(--gold-l);margin:10px 0 14px;font-weight:500}
+  .scrim{position:fixed;inset:0;background:rgba(3,10,20,.6);z-index:105;display:none}
+  .scrim.open{display:block}
+
+  /* 訂單 */
+  .order{border:1px solid var(--navy-l);padding:14px 16px;margin-bottom:12px;background:var(--navy)}
+  .order .oh{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:14px}
+  .order .no{color:var(--gold-l);letter-spacing:1px}
+  .order ul{margin:8px 0;padding-left:18px;font-size:13.5px;opacity:.85}
+  .st{font-size:12px;padding:2px 10px;border:1px solid var(--gold-d);color:var(--gold-p)}
+  .st.paid,.st.shipped,.st.completed{border-color:var(--ok);color:var(--ok)}
+  .st.cancelled{border-color:var(--err);color:var(--err)}
+  .radio{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px}
+  .radio label{display:flex;align-items:center;gap:6px;cursor:pointer;margin:0;color:var(--cream);letter-spacing:0}
+  .radio input{width:auto}
+
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:var(--gold);color:var(--navy);padding:10px 22px;font-size:14px;letter-spacing:1px;opacity:0;pointer-events:none;transition:.3s;z-index:200;font-weight:700}
+  .toast.show{opacity:1;transform:translateX(-50%)}
+  footer{border-top:1px solid var(--navy-l);text-align:center;padding:26px 16px;font-size:13px;opacity:.6;letter-spacing:2px}
+
+  @media(max-width:720px){
+    .bar{flex-wrap:wrap;gap:10px;padding:12px 14px}
+    .brand{font-size:18px;letter-spacing:2px}
+    .spacer{display:none}
+    .grid{grid-template-columns:repeat(2,1fr);gap:12px}
+    .pbody{padding:12px}
+    .pname{font-size:14.5px}
+    .price .now{font-size:18px}
+    .detail{grid-template-columns:1fr}
+    .row2{grid-template-columns:1fr}
+    .modal{padding:24px 18px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <a class="brand" href="shop.html">八吉祥購物商城</a>
+    <a class="back" href="index.html">← 回官網</a>
+    <div class="spacer"></div>
+    <span class="tier" id="tierBadge">一般價</span>
+    <button class="hbtn" id="accountBtn">登入／註冊</button>
+    <button class="hbtn" id="cartBtn">購物車<span class="cart-count" id="cartCount">0</span></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>八吉祥購物商城</h1>
+    <p>聲音 · 頻率 · 身心靈好物</p>
+  </section>
+
+  <div id="notice"></div>
+  <div id="orderBanner"></div>
+
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">目前沒有上架的商品</div>
+
+  <div style="text-align:center;margin-top:46px">
+    <button class="small-link" id="lookupBtn">訪客查詢訂單</button>
+  </div>
+</main>
+
+<footer>© 八吉祥音樂工作室</footer>
+
+<!-- 商品詳情 -->
+<div class="overlay" id="detailOv">
+  <div class="modal wide">
+    <button class="x" data-close="detailOv" aria-label="關閉">×</button>
+    <div class="detail" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- 登入／註冊／帳號 -->
+<div class="overlay" id="authOv">
+  <div class="modal">
+    <button class="x" data-close="authOv" aria-label="關閉">×</button>
+    <div id="authBody"></div>
+  </div>
+</div>
+
+<!-- 結帳 -->
+<div class="overlay" id="checkoutOv">
+  <div class="modal">
+    <button class="x" data-close="checkoutOv" aria-label="關閉">×</button>
+    <h2>填寫收件資料</h2>
+    <div class="field"><label for="coName">收件人姓名 *</label><input id="coName" autocomplete="name"></div>
+    <div class="row2">
+      <div class="field"><label for="coPhone">聯絡電話 *</label><input id="coPhone" type="tel" autocomplete="tel"></div>
+      <div class="field"><label for="coEmail">Email</label><input id="coEmail" type="email" autocomplete="email"></div>
+    </div>
+    <div class="field"><label for="coAddr">收件地址 *</label><input id="coAddr" autocomplete="street-address"></div>
+    <div class="field"><label for="coNote">備註（選填）</label><textarea id="coNote" rows="2"></textarea></div>
+    <div class="field">
+      <label>付款方式</label>
+      <div class="radio" id="coPay">
+        <label><input type="radio" name="pay" value="ALL" checked>全部方式（於綠界頁面選擇）</label>
+        <label><input type="radio" name="pay" value="Credit">信用卡</label>
+        <label><input type="radio" name="pay" value="ATM">ATM 轉帳</label>
+        <label><input type="radio" name="pay" value="CVS">超商代碼</label>
+      </div>
+    </div>
+    <div class="sumrow total"><span>應付金額</span><span id="coTotal"></span></div>
+    <button class="btn block" id="coSubmit">前往付款</button>
+    <div class="msg" id="coMsg"></div>
+  </div>
+</div>
+
+<!-- 訂單查詢 -->
+<div class="overlay" id="lookupOv">
+  <div class="modal">
+    <button class="x" data-close="lookupOv" aria-label="關閉">×</button>
+    <h2>查詢訂單</h2>
+    <div class="field"><label for="lkNo">訂單編號</label><input id="lkNo" placeholder="例如 BJ261006ABC123"></div>
+    <div class="field"><label for="lkPhone">收件人電話</label><input id="lkPhone" type="tel"></div>
+    <button class="btn block" id="lkGo">查詢</button>
+    <div class="msg" id="lkMsg"></div>
+    <div id="lkResult"></div>
+  </div>
+</div>
+
+<!-- 購物車 -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="購物車">
+  <div class="drawer-h"><h2>購物車</h2><button class="x" style="position:static" id="drawerClose" aria-label="關閉">×</button></div>
+  <div class="drawer-b" id="cartBody"></div>
+  <div class="drawer-f" id="cartFoot"></div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var SUPABASE_URL = 'https://vmwwmowgijcskcrajmzg.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtd3dtb3dnaWpjc2tjcmFqbXpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MDA5MTgsImV4cCI6MjEwMDM3NjkxOH0.3P7WTw0q--T02U73AYktaZBuRC-QWR0rmGHdcR0ahTM';
+  // 商城使用獨立的登入儲存位置，不會和官網／後台的登入狀態互相影響
+  var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { storageKey: 'bjx-shop-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+
+  var TIER_LABEL = { guest: '一般價', member: '會員價', dealer: '經銷商價' };
+  var STATUS_LABEL = { pending_payment: '待付款', paid: '已付款', shipped: '已出貨', completed: '已完成', cancelled: '已取消' };
+  var PAY_LABEL = { ALL: '綠界付款', Credit: '信用卡', ATM: 'ATM 轉帳', CVS: '超商代碼' };
+
+  var state = { user: null, profile: null, info: { tier: 'guest', shop_open: true, member_percent_off: 0, shipping_fee: 0, free_shipping_threshold: 0, require_login: false }, products: [], cat: '', cart: [] };
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+  function money(n){ return 'NT$ ' + Number(n || 0).toLocaleString('en-US'); }
+  function zhe(pct){ var v = Math.round((100 - pct) * 10) / 10; return (v % 10 === 0) ? String(v / 10) : String(v); }
+  function toast(t){ var el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(function(){ el.classList.remove('show'); }, 2400); }
+  function errText(e){ return (e && (e.message || e.error_description || e.msg)) || String(e); }
+
+  // ---------- 購物車（存在瀏覽器；價格一律以伺服器為準） ----------
+  function loadCart(){
+    try { var raw = localStorage.getItem('bjx-cart'); state.cart = raw ? JSON.parse(raw) : []; } catch(e){ state.cart = []; }
+    if (!Array.isArray(state.cart)) state.cart = [];
+  }
+  function saveCart(){ try { localStorage.setItem('bjx-cart', JSON.stringify(state.cart)); } catch(e){} }
+  function productById(id){ for (var i = 0; i < state.products.length; i++) if (state.products[i].id === id) return state.products[i]; return null; }
+  function cartQty(id){ for (var i = 0; i < state.cart.length; i++) if (state.cart[i].id === id) return state.cart[i].qty; return 0; }
+  function addToCart(id, qty){
+    var p = productById(id); if (!p) return;
+    var cur = cartQty(id), next = Math.min(cur + qty, p.stock);
+    if (next <= cur) { toast('已達庫存上限'); return; }
+    var found = false;
+    state.cart.forEach(function(c){ if (c.id === id) { c.qty = next; found = true; } });
+    if (!found) state.cart.push({ id: id, qty: next });
+    saveCart(); renderCart(); toast('已加入購物車');
+  }
+  function setQty(id, qty){
+    var p = productById(id);
+    if (qty <= 0 || !p) { state.cart = state.cart.filter(function(c){ return c.id !== id; }); }
+    else { state.cart.forEach(function(c){ if (c.id === id) c.qty = Math.min(qty, p.stock); }); }
+    saveCart(); renderCart();
+  }
+  function cartLines(){
+    var lines = [];
+    state.cart.forEach(function(c){ var p = productById(c.id); if (p && p.stock > 0) lines.push({ p: p, qty: Math.min(c.qty, p.stock) }); });
+    return lines;
+  }
+  function cartTotals(){
+    var sub = 0; cartLines().forEach(function(l){ sub += l.p.unit_price * l.qty; });
+    var th = state.info.free_shipping_threshold, fee = state.info.shipping_fee;
+    var ship = sub === 0 ? 0 : ((th > 0 && sub >= th) ? 0 : fee);
+    return { sub: sub, ship: ship, total: sub + ship };
+  }
+
+  // ---------- 資料載入 ----------
+  async function refresh(){
+    var s = await sb.auth.getSession();
+    state.user = s.data && s.data.session ? s.data.session.user : null;
+    state.profile = null;
+    if (state.user) {
+      var pr = await sb.from('profiles').select('*').eq('user_id', state.user.id).maybeSingle();
+      state.profile = pr.data || null;
+    }
+    var info = await sb.rpc('shop_info');
+    if (!info.error && info.data) state.info = info.data;
+    var prods = await sb.rpc('shop_products');
+    if (prods.error) { $('grid').innerHTML = ''; $('empty').style.display = 'block'; $('empty').textContent = '商品載入失敗：' + errText(prods.error); }
+    else { state.products = prods.data || []; }
+    renderAll();
+  }
+
+  // ---------- 畫面 ----------
+  function renderAll(){ renderHeader(); renderNotice(); renderChips(); renderGrid(); renderCart(); }
+
+  function renderHeader(){
+    var t = state.info.tier || 'guest';
+    var b = $('tierBadge'); b.textContent = TIER_LABEL[t] || '一般價'; b.className = 'tier ' + t;
+    $('accountBtn').textContent = state.user ? '我的帳號' : '登入／註冊';
+  }
+
+  function renderNotice(){
+    var el = $('notice'), t = state.info.tier, h = '';
+    if (!state.info.shop_open) h = '<div class="notice warn">商城目前暫停接單，商品仍可瀏覽。</div>';
+    else if (t === 'dealer') h = '<div class="notice ok">您是<b>經銷商</b>，已自動套用經銷商價格。</div>';
+    else if (t === 'member') h = '<div class="notice ok">歡迎回來！已自動套用<b>會員價（' + zhe(state.info.member_percent_off) + ' 折）</b>。</div>';
+    else if (state.info.member_percent_off > 0) h = '<div class="notice">目前顯示一般價。<button class="link" id="joinLink">註冊成為會員</button>即享<b>全館 ' + zhe(state.info.member_percent_off) + ' 折</b>。</div>';
+    el.innerHTML = h;
+    var j = $('joinLink'); if (j) j.addEventListener('click', function(){ openAuth('register'); });
+  }
+
+  function renderChips(){
+    var cats = [];
+    state.products.forEach(function(p){ if (p.category && cats.indexOf(p.category) < 0) cats.push(p.category); });
+    var el = $('chips');
+    if (cats.length < 2) { el.innerHTML = ''; state.cat = ''; return; }
+    var html = '<button class="chip' + (state.cat === '' ? ' active' : '') + '" data-cat="">全部</button>';
+    cats.forEach(function(c){ html += '<button class="chip' + (state.cat === c ? ' active' : '') + '" data-cat="' + esc(c) + '">' + esc(c) + '</button>'; });
+    el.innerHTML = html;
+    el.querySelectorAll('.chip').forEach(function(b){ b.addEventListener('click', function(){ state.cat = b.getAttribute('data-cat'); renderChips(); renderGrid(); }); });
+  }
+
+  function imgHtml(p){
+    var inner = p.image_url ? '<img src="' + esc(p.image_url) + '" alt="' + esc(p.name) + '" loading="lazy">' : '<span class="ph">八吉祥</span>';
+    return inner;
+  }
+  function priceHtml(p){
+    var t = state.info.tier;
+    if (t !== 'guest' && p.unit_price < p.base_price) {
+      return '<div class="price"><span class="now">' + money(p.unit_price) + '</span><span class="was">' + money(p.base_price) + '</span><span class="tag">' + esc(TIER_LABEL[t]) + '</span></div>';
+    }
+    return '<div class="price"><span class="now">' + money(p.unit_price) + '</span></div>';
+  }
+
+  function renderGrid(){
+    var list = state.products.filter(function(p){ return !state.cat || p.category === state.cat; });
+    var grid = $('grid');
+    $('empty').style.display = (state.products.length === 0) ? 'block' : 'none';
+    if (state.products.length === 0) $('empty').textContent = '目前沒有上架的商品';
+    grid.innerHTML = '';
+    list.forEach(function(p){
+      var card = document.createElement('div');
+      card.className = 'pcard';
+      var sold = p.stock <= 0;
+      card.innerHTML =
+        '<div class="pimg">' + imgHtml(p) + (sold ? '<div class="soldout">已售完</div>' : '') + '</div>' +
+        '<div class="pbody">' +
+          (p.category ? '<div class="pcat">' + esc(p.category) + '</div>' : '') +
+          '<div class="pname">' + esc(p.name) + '</div>' +
+          priceHtml(p) +
+          (!sold && p.stock <= 5 ? '<div class="low">僅剩 ' + p.stock + ' 件</div>' : '') +
+          '<button class="btn block"' + (sold ? ' disabled' : '') + '>' + (sold ? '已售完' : '加入購物車') + '</button>' +
+        '</div>';
+      card.querySelector('.pimg').addEventListener('click', function(){ openDetail(p.id); });
+      card.querySelector('.pname').addEventListener('click', function(){ openDetail(p.id); });
+      card.querySelector('.btn').addEventListener('click', function(){ addToCart(p.id, 1); });
+      grid.appendChild(card);
+    });
+  }
+
+  function openDetail(id){
+    var p = productById(id); if (!p) return;
+    var sold = p.stock <= 0, q = 1;
+    var body = $('detailBody');
+    body.innerHTML =
+      '<div class="pimg">' + imgHtml(p) + '</div>' +
+      '<div>' +
+        (p.category ? '<div class="pcat">' + esc(p.category) + '</div>' : '') +
+        '<h2>' + esc(p.name) + '</h2>' +
+        priceHtml(p) +
+        '<div class="desc">' + esc(p.description || '') + '</div>' +
+        (sold ? '<div class="low">已售完</div>' :
+          '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div class="qty"><button id="dMinus">−</button><span id="dQty">1</span><button id="dPlus">＋</button></div>' +
+          '<button class="btn" id="dAdd">加入購物車</button></div>' +
+          (p.stock <= 5 ? '<div class="low" style="margin-top:8px">僅剩 ' + p.stock + ' 件</div>' : '')) +
+      '</div>';
+    if (!sold) {
+      $('dMinus').addEventListener('click', function(){ q = Math.max(1, q - 1); $('dQty').textContent = q; });
+      $('dPlus').addEventListener('click', function(){ q = Math.min(p.stock, q + 1); $('dQty').textContent = q; });
+      $('dAdd').addEventListener('click', function(){ addToCart(p.id, q); closeOv('detailOv'); openCart(); });
+    }
+    openOv('detailOv');
+  }
+
+  // ---------- 購物車抽屜 ----------
+  function renderCart(){
+    var lines = cartLines(), n = 0;
+    lines.forEach(function(l){ n += l.qty; });
+    $('cartCount').textContent = n;
+    var body = $('cartBody'), foot = $('cartFoot');
+    if (!lines.length) { body.innerHTML = '<div class="empty">購物車是空的</div>'; foot.innerHTML = ''; return; }
+    body.innerHTML = '';
+    lines.forEach(function(l){
+      var row = document.createElement('div'); row.className = 'citem';
+      row.innerHTML =
+        '<div class="pimg">' + imgHtml(l.p) + '</div>' +
+        '<div><div class="nm">' + esc(l.p.name) + '</div><div class="pr">' + money(l.p.unit_price) + '</div><button class="rm">移除</button></div>' +
+        '<div class="qty"><button class="m">−</button><span>' + l.qty + '</span><button class="pl">＋</button></div>';
+      row.querySelector('.m').addEventListener('click', function(){ setQty(l.p.id, l.qty - 1); });
+      row.querySelector('.pl').addEventListener('click', function(){ if (l.qty >= l.p.stock) toast('已達庫存上限'); setQty(l.p.id, l.qty + 1); });
+      row.querySelector('.rm').addEventListener('click', function(){ setQty(l.p.id, 0); });
+      body.appendChild(row);
+    });
+    var t = cartTotals(), th = state.info.free_shipping_threshold;
+    foot.innerHTML =
+      '<div class="sumrow"><span>商品小計</span><span>' + money(t.sub) + '</span></div>' +
+      '<div class="sumrow"><span>運費' + (th > 0 && t.ship > 0 ? '（滿 ' + money(th) + ' 免運）' : '') + '</span><span>' + (t.ship === 0 ? '免運費' : money(t.ship)) + '</span></div>' +
+      '<div class="sumrow total"><span>合計</span><span>' + money(t.total) + '</span></div>' +
+      '<button class="btn block" id="goCheckout"' + (state.info.shop_open ? '' : ' disabled') + '>前往結帳</button>';
+    $('goCheckout').addEventListener('click', startCheckout);
+  }
+  function openCart(){ $('drawer').classList.add('open'); $('scrim').classList.add('open'); }
+  function closeCart(){ $('drawer').classList.remove('open'); $('scrim').classList.remove('open'); }
+  $('cartBtn').addEventListener('click', openCart);
+  $('drawerClose').addEventListener('click', closeCart);
+  $('scrim').addEventListener('click', closeCart);
+
+  // ---------- 彈窗通用 ----------
+  function openOv(id){ $(id).classList.add('open'); }
+  function closeOv(id){ $(id).classList.remove('open'); }
+  document.querySelectorAll('[data-close]').forEach(function(b){ b.addEventListener('click', function(){ closeOv(b.getAttribute('data-close')); }); });
+  document.querySelectorAll('.overlay').forEach(function(o){ o.addEventListener('mousedown', function(e){ if (e.target === o) o.classList.remove('open'); }); });
+
+  // ---------- 登入／註冊／帳號 ----------
+  function openAuth(mode){ if (state.user) renderAccount(); else renderAuth(mode || 'login'); openOv('authOv'); }
+  $('accountBtn').addEventListener('click', function(){ openAuth('login'); });
+
+  function renderAuth(mode){
+    var isReg = mode === 'register';
+    $('authBody').innerHTML =
+      '<div class="tabs2"><button data-m="login" class="' + (!isReg ? 'active' : '') + '">登入</button><button data-m="register" class="' + (isReg ? 'active' : '') + '">註冊會員</button></div>' +
+      (isReg ? '<div class="field"><label for="rgName">姓名</label><input id="rgName" autocomplete="name"></div><div class="field"><label for="rgPhone">電話</label><input id="rgPhone" type="tel" autocomplete="tel"></div>' : '') +
+      '<div class="field"><label for="auEmail">Email</label><input id="auEmail" type="email" autocomplete="email"></div>' +
+      '<div class="field"><label for="auPass">密碼' + (isReg ? '（至少 6 碼）' : '') + '</label><input id="auPass" type="password" autocomplete="' + (isReg ? 'new-password' : 'current-password') + '"></div>' +
+      '<button class="btn block" id="auGo">' + (isReg ? '註冊' : '登入') + '</button>' +
+      (!isReg ? '<button class="small-link" id="auForgot">忘記密碼？</button>' : '') +
+      '<div class="msg" id="auMsg"></div>';
+    $('authBody').querySelectorAll('.tabs2 button').forEach(function(b){ b.addEventListener('click', function(){ renderAuth(b.getAttribute('data-m')); }); });
+    $('auGo').addEventListener('click', function(){ isReg ? doRegister() : doLogin(); });
+    $('authBody').querySelectorAll('input').forEach(function(i){ i.addEventListener('keydown', function(e){ if (e.key === 'Enter') $('auGo').click(); }); });
+    var f = $('auForgot'); if (f) f.addEventListener('click', doForgot);
+  }
+  function authMsg(t, ok){ var m = $('auMsg'); if (m) { m.textContent = t; m.className = 'msg ' + (ok ? 'ok' : 'err'); } }
+
+  async function doLogin(){
+    var btn = $('auGo'); btn.disabled = true; authMsg('', true);
+    var r = await sb.auth.signInWithPassword({ email: $('auEmail').value.trim(), password: $('auPass').value });
+    btn.disabled = false;
+    if (r.error) { authMsg(r.error.message === 'Invalid login credentials' ? '帳號或密碼錯誤' : errText(r.error), false); return; }
+    closeOv('authOv'); toast('登入成功');
+  }
+  async function doRegister(){
+    var name = $('rgName').value.trim(), phone = $('rgPhone').value.trim(), email = $('auEmail').value.trim(), pass = $('auPass').value;
+    if (!name || !email) { authMsg('請填寫姓名與 Email', false); return; }
+    if (pass.length < 6) { authMsg('密碼至少需要 6 碼', false); return; }
+    var btn = $('auGo'); btn.disabled = true; authMsg('', true);
+    var r = await sb.auth.signUp({ email: email, password: pass, options: { data: { name: name, phone: phone }, emailRedirectTo: location.origin + location.pathname } });
+    btn.disabled = false;
+    if (r.error) { authMsg(errText(r.error), false); return; }
+    if (r.data && r.data.session) { closeOv('authOv'); toast('註冊成功，已套用會員價'); }
+    else { authMsg('註冊成功！請到信箱點擊驗證連結後再登入。', true); }
+  }
+  async function doForgot(){
+    var email = $('auEmail').value.trim();
+    if (!email) { authMsg('請先在上方輸入 Email', false); return; }
+    var r = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+    authMsg(r.error ? errText(r.error) : '重設密碼信已寄出，請到信箱查收。', !r.error);
+  }
+
+  function renderAccount(){
+    var p = state.profile || {}, t = state.info.tier;
+    $('authBody').innerHTML =
+      '<h2>我的帳號</h2>' +
+      '<div style="margin-bottom:16px;font-size:14px;opacity:.85">' + esc(state.user.email) + ' <span class="tier ' + t + '" style="margin-left:8px">' + esc(TIER_LABEL[t] || '') + '</span></div>' +
+      '<div class="row2"><div class="field"><label for="acName">姓名</label><input id="acName" value="' + esc(p.name || '') + '"></div>' +
+      '<div class="field"><label for="acPhone">電話</label><input id="acPhone" type="tel" value="' + esc(p.phone || '') + '"></div></div>' +
+      '<button class="btn-o" id="acSave">儲存資料</button><div class="msg" id="acMsg"></div>' +
+      (t !== 'dealer' ? '<div class="sub-h" style="margin:18px 0 8px;color:var(--gold-l);letter-spacing:2px">經銷商代碼</div><div class="field" style="display:flex;gap:10px"><input id="acCode" placeholder="輸入代碼升級為經銷商" style="flex:1"><button class="btn-o" id="acRedeem">啟用</button></div><div class="msg" id="acCodeMsg"></div>' : '') +
+      '<div class="sub-h" style="margin:18px 0 8px;color:var(--gold-l);letter-spacing:2px">我的訂單</div><div id="acOrders">載入中...</div>' +
+      '<div style="margin-top:18px"><button class="btn-o" id="acLogout">登出</button></div>';
+    $('acSave').addEventListener('click', async function(){
+      var r = await sb.rpc('update_my_profile', { p_name: $('acName').value.trim(), p_phone: $('acPhone').value.trim() });
+      $('acMsg').textContent = r.error ? '儲存失敗：' + errText(r.error) : '已儲存'; $('acMsg').className = 'msg ' + (r.error ? 'err' : 'ok');
+      if (!r.error) { state.profile = Object.assign({}, state.profile, { name: $('acName').value.trim(), phone: $('acPhone').value.trim() }); }
+    });
+    var rd = $('acRedeem');
+    if (rd) rd.addEventListener('click', async function(){
+      var code = $('acCode').value.trim(); if (!code) return;
+      var r = await sb.rpc('redeem_dealer_code', { p_code: code });
+      var m = $('acCodeMsg');
+      if (r.error) { m.textContent = errText(r.error); m.className = 'msg err'; }
+      else { m.textContent = '已升級為經銷商！'; m.className = 'msg ok'; await refresh(); renderAccount(); }
+    });
+    $('acLogout').addEventListener('click', async function(){ await sb.auth.signOut(); closeOv('authOv'); toast('已登出'); });
+    loadMyOrders();
+  }
+
+  function orderHtml(o){
+    var items = (o.items || []).map(function(i){ return '<li>' + esc(i.name) + ' × ' + i.qty + '（' + money(i.unit_price) + '）</li>'; }).join('');
+    return '<div class="order"><div class="oh"><span class="no">' + esc(o.order_no) + '</span><span class="st ' + esc(o.status) + '">' + esc(STATUS_LABEL[o.status] || o.status) + '</span></div>' +
+      '<div style="font-size:12px;opacity:.6">' + esc(new Date(o.created_at).toLocaleString('zh-TW')) + '</div>' +
+      '<ul>' + items + '</ul>' +
+      '<div class="sumrow" style="margin:0"><span>合計（含運費 ' + money(o.shipping_fee) + '）</span><span>' + money(o.total) + '</span></div>' +
+      (o.status === 'pending_payment' ? '<div style="margin-top:10px"><button class="btn-o repay" data-no="' + esc(o.order_no) + '">繼續付款</button></div>' : '') + '</div>';
+  }
+  function bindRepay(root){
+    root.querySelectorAll('.repay').forEach(function(b){ b.addEventListener('click', function(){ b.disabled = true; goPay(b.getAttribute('data-no')).then(function(ok){ if (!ok) b.disabled = false; }); }); });
+  }
+  async function loadMyOrders(){
+    var el = $('acOrders');
+    var r = await sb.from('orders').select('order_no,status,total,shipping_fee,items,created_at').order('created_at', { ascending: false }).limit(30);
+    if (r.error) { el.textContent = '載入失敗：' + errText(r.error); return; }
+    if (!r.data.length) { el.innerHTML = '<div style="opacity:.6;font-size:14px">尚無訂單</div>'; return; }
+    el.innerHTML = r.data.map(orderHtml).join('');
+    bindRepay(el);
+  }
+
+  // ---------- 結帳 ----------
+  function startCheckout(){
+    if (!state.info.shop_open) { toast('商城目前暫停接單'); return; }
+    if (state.info.require_login && !state.user) { closeCart(); toast('請先登入會員再結帳'); openAuth('login'); return; }
+    var p = state.profile || {};
+    if (!$('coName').value) $('coName').value = p.name || '';
+    if (!$('coPhone').value) $('coPhone').value = p.phone || '';
+    if (!$('coEmail').value) $('coEmail').value = (state.user && state.user.email) || '';
+    $('coTotal').textContent = money(cartTotals().total);
+    $('coMsg').textContent = ''; $('coMsg').className = 'msg';
+    closeCart(); openOv('checkoutOv');
+  }
+  function coMsg(t, ok){ $('coMsg').textContent = t; $('coMsg').className = 'msg ' + (ok ? 'ok' : 'err'); }
+
+  $('coSubmit').addEventListener('click', async function(){
+    var btn = this;
+    var info = {
+      name: $('coName').value.trim(), phone: $('coPhone').value.trim(), email: $('coEmail').value.trim(),
+      address: $('coAddr').value.trim(), note: $('coNote').value.trim(),
+      payment_method: (document.querySelector('input[name=pay]:checked') || {}).value || 'ALL'
+    };
+    if (!info.name || !info.phone || !info.address) { coMsg('請完整填寫姓名、電話與地址', false); return; }
+    var items = cartLines().map(function(l){ return { product_id: l.p.id, qty: l.qty }; });
+    if (!items.length) { coMsg('購物車是空的', false); return; }
+    btn.disabled = true; coMsg('建立訂單中...', true);
+    var r = await sb.rpc('create_order', { p_items: items, p_info: info });
+    if (r.error) { btn.disabled = false; coMsg(errText(r.error), false); refresh(); return; }
+    // 訂單已建立，清空購物車再前往付款
+    state.cart = []; saveCart(); renderCart();
+    coMsg('訂單 ' + r.data.order_no + ' 已建立，正在前往付款頁面...', true);
+    var ok = await goPay(r.data.order_no);
+    if (!ok) { coMsg('訂單 ' + r.data.order_no + ' 已建立，但付款頁面開啟失敗。請到「我的帳號 → 我的訂單」或「訪客查詢訂單」重新付款。', false); btn.disabled = false; }
+  });
+
+  // 向 Edge Function 取得綠界表單，並自動送出
+  async function goPay(orderNo){
+    try {
+      var r = await sb.functions.invoke('ecpay-checkout', { body: { order_no: orderNo } });
+      if (r.error) throw r.error;
+      var d = r.data;
+      if (!d || !d.action || !d.fields) throw new Error((d && d.error) || '付款資料錯誤');
+      var form = document.createElement('form');
+      form.method = 'POST'; form.action = d.action; form.style.display = 'none';
+      Object.keys(d.fields).forEach(function(k){
+        var i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = d.fields[k]; form.appendChild(i);
+      });
+      document.body.appendChild(form); form.submit();
+      return true;
+    } catch(e){
+      console.error('付款失敗：', e);
+      toast('付款頁面開啟失敗：' + errText(e));
+      return false;
+    }
+  }
+
+  // ---------- 訪客查詢訂單 ----------
+  $('lookupBtn').addEventListener('click', function(){ openOv('lookupOv'); });
+  $('lkGo').addEventListener('click', async function(){
+    var m = $('lkMsg'); m.textContent = ''; $('lkResult').innerHTML = '';
+    var no = $('lkNo').value.trim(), ph = $('lkPhone').value.trim();
+    if (!no || !ph) { m.textContent = '請輸入訂單編號與電話'; m.className = 'msg err'; return; }
+    var r = await sb.rpc('lookup_order', { p_order_no: no, p_phone: ph });
+    if (r.error) { m.textContent = errText(r.error); m.className = 'msg err'; return; }
+    if (!r.data) { m.textContent = '查無此訂單，請確認編號與電話'; m.className = 'msg err'; return; }
+    $('lkResult').innerHTML = orderHtml(r.data); bindRepay($('lkResult'));
+  });
+
+  // ---------- 付款完成返回 ----------
+  async function handleReturn(){
+    var no = new URLSearchParams(location.search).get('order');
+    if (!no) return;
+    var box = $('orderBanner');
+    box.innerHTML = '<div class="notice">訂單 <b>' + esc(no) + '</b> 已送出，正在確認付款結果...</div>';
+    for (var i = 0; i < 10; i++) {
+      var r = await sb.rpc('order_status', { p_order_no: no });
+      var st = r.data;
+      if (st === 'paid' || st === 'shipped' || st === 'completed') {
+        box.innerHTML = '<div class="notice ok">感謝您的訂購！訂單 <b>' + esc(no) + '</b> 已付款成功，我們會盡快為您出貨。</div>'; return;
+      }
+      if (st === 'cancelled') { box.innerHTML = '<div class="notice warn">訂單 ' + esc(no) + ' 已取消。</div>'; return; }
+      await new Promise(function(res){ setTimeout(res, 3000); });
+    }
+    box.innerHTML = '<div class="notice">訂單 <b>' + esc(no) + '</b> 尚未收到付款通知。若您選擇 ATM 或超商繳費，請於期限內完成繳費，繳費後系統會自動更新訂單狀態。</div>';
+  }
+
+  // ---------- 密碼重設／登入狀態變化 ----------
+  sb.auth.onAuthStateChange(function(event){
+    if (event === 'PASSWORD_RECOVERY') {
+      $('authBody').innerHTML = '<h2>設定新密碼</h2><div class="field"><label for="npPass">新密碼（至少 6 碼）</label><input id="npPass" type="password" autocomplete="new-password"></div><button class="btn block" id="npGo">更新密碼</button><div class="msg" id="npMsg"></div>';
+      $('npGo').addEventListener('click', async function(){
+        var v = $('npPass').value;
+        if (v.length < 6) { $('npMsg').textContent = '密碼至少需要 6 碼'; $('npMsg').className = 'msg err'; return; }
+        var r = await sb.auth.updateUser({ password: v });
+        $('npMsg').textContent = r.error ? errText(r.error) : '密碼已更新'; $('npMsg').className = 'msg ' + (r.error ? 'err' : 'ok');
+      });
+      openOv('authOv');
+    }
+    if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+      setTimeout(function(){ refresh(); }, 0);
+    }
+  });
+
+  loadCart();
+  refresh().then(handleReturn);
+})();
+</script>
+</body>
+</html>
