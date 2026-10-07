@@ -3240,6 +3240,84 @@ p, li { font-size: 26px !important; }
 </style>
 
 
+<style id="bjx-motion-css">
+/* ===== 八吉祥 動態效果（新增區塊：八大頻率互動／聲波分隔線／活動輪播） ===== */
+
+/* ---- 1) 八大頻率：聲波擴散 + Hz 光暈 ---- */
+.freq-img-wrap{position:relative}
+.bjx-ring{
+  position:absolute;left:50%;top:50%;width:22%;aspect-ratio:1/1;border-radius:50%;
+  border:1.5px solid rgba(232,203,122,.85);box-shadow:0 0 14px rgba(201,168,76,.35);
+  transform:translate(-50%,-50%) scale(.25);opacity:0;pointer-events:none;
+  animation:bjxRing 1.7s cubic-bezier(.2,.6,.3,1) forwards;
+}
+@keyframes bjxRing{
+  0%{transform:translate(-50%,-50%) scale(.25);opacity:.95}
+  100%{transform:translate(-50%,-50%) scale(6.5);opacity:0}
+}
+.freq-label-hz{font-variant-numeric:tabular-nums;transition:text-shadow .4s,color .4s}
+.freq-card-img-full:hover .freq-label-hz,
+.freq-card-img-full.bjx-active .freq-label-hz{color:#fff3c9;text-shadow:0 0 12px rgba(232,203,122,.9)}
+.freq-label-hz.bjx-hz-done{animation:bjxHzFlash 1.2s ease-out 1}
+@keyframes bjxHzFlash{0%{text-shadow:0 0 0 rgba(232,203,122,0)}35%{text-shadow:0 0 14px rgba(232,203,122,.95)}100%{text-shadow:0 0 0 rgba(232,203,122,0)}}
+
+/* ---- 2) 聲波分隔線（放在區塊上緣） ---- */
+.bjx-wave{
+  position:absolute;left:0;right:0;top:14px;height:38px;overflow:hidden;pointer-events:none;z-index:0;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 18%,#000 82%,transparent 100%);
+          mask-image:linear-gradient(90deg,transparent 0%,#000 18%,#000 82%,transparent 100%);
+}
+.bjx-wave svg{position:absolute;left:0;top:0;width:200%;height:100%;display:block;animation:bjxWave 24s linear infinite;animation-play-state:paused;will-change:transform}
+.bjx-wave svg:nth-child(2){animation-duration:36s;animation-direction:reverse}
+.bjx-wave svg:nth-child(3){animation-duration:52s}
+.bjx-wave.on svg{animation-play-state:running}
+.bjx-wave path{fill:none;stroke:var(--gold,#C9A84C);stroke-linecap:round;vector-effect:non-scaling-stroke}
+.bjx-wave svg:nth-child(1) path{stroke-width:1.2px;opacity:.55}
+.bjx-wave svg:nth-child(2) path{stroke-width:1px;opacity:.32}
+.bjx-wave svg:nth-child(3) path{stroke-width:.8px;opacity:.2}
+@keyframes bjxWave{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ---- 3) 輪播（最新活動／活動花絮） ---- */
+.bjx-car{position:relative}
+.bjx-car--latest{max-width:700px;margin:0 auto}
+.bjx-carousel{
+  display:flex !important;flex-wrap:nowrap;gap:clamp(8px,1.2vw,14px);
+  overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;padding:8px 0 10px;overscroll-behavior-x:contain;
+}
+.bjx-carousel::-webkit-scrollbar{display:none}
+.bjx-carousel > *{scroll-snap-align:start;flex:0 0 auto}
+/* 活動花絮：桌機一次 3 張、手機 2 張 */
+#highlights-grid.bjx-carousel > .hl-item{flex:0 0 calc((100% - 2*clamp(8px,1.2vw,14px)) / 3);grid-column:auto !important}
+@media (max-width:768px){#highlights-grid.bjx-carousel > .hl-item{flex-basis:calc((100% - 10px) / 2)}}
+/* 最新活動：一次一張，置中 */
+#latest-events-gallery.bjx-carousel{max-width:none;margin:0;gap:16px}
+#latest-events-gallery.bjx-carousel > .extra-gallery-item{flex:0 0 100%;scroll-snap-align:center}
+.bjx-nav{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:44px;height:44px;border-radius:50%;
+  background:rgba(11,31,58,.78);border:1px solid rgba(201,168,76,.6);color:var(--gold-l,#E8CB7A);
+  font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);transition:background .25s,color .25s,opacity .25s,border-color .25s;padding:0;
+}
+.bjx-nav:hover{background:var(--gold,#C9A84C);color:#0B1F3A;border-color:var(--gold,#C9A84C)}
+.bjx-nav:focus-visible{outline:2px solid var(--gold-l,#E8CB7A);outline-offset:2px}
+.bjx-nav[disabled]{opacity:0;pointer-events:none}
+.bjx-prev{left:-10px}.bjx-next{right:-10px}
+@media (max-width:768px){.bjx-nav{width:38px;height:38px;font-size:19px}.bjx-prev{left:2px}.bjx-next{right:2px}}
+.bjx-dots{display:flex;justify-content:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.bjx-dot{width:9px;height:9px;border-radius:50%;border:1px solid rgba(201,168,76,.7);background:transparent;padding:0;cursor:pointer;transition:background .3s,transform .3s,width .3s}
+.bjx-dot.on{background:var(--gold,#C9A84C);width:24px;border-radius:6px}
+.bjx-dot:focus-visible{outline:2px solid var(--gold-l,#E8CB7A);outline-offset:3px}
+
+/* ---- 尊重「減少動態效果」設定 ---- */
+@media (prefers-reduced-motion:reduce){
+  .bjx-ring{display:none}
+  .bjx-wave svg{animation:none !important}
+  .freq-label-hz.bjx-hz-done{animation:none}
+  .bjx-carousel{scroll-behavior:auto}
+}
+</style>
+
 </head>
 <body translate="no" class="notranslate">
 <script>
@@ -6168,6 +6246,236 @@ document.addEventListener('keydown', function(e) {
       setTimeout(settleScrollPosition, 1500);
     });
   });
+})();
+</script>
+
+<script id="bjx-motion-js">
+/* 八吉祥 動態效果（新增區塊）：八大頻率互動／聲波分隔線／活動輪播 */
+(function () {
+  'use strict';
+  var reduce = false;
+  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  var hasIO = 'IntersectionObserver' in window;
+
+  /* ---------- 1) 八大頻率：Hz 數字跳動 + 聲波擴散 ---------- */
+  function initFrequencies() {
+    var cards = document.querySelectorAll('#freq-grid .freq-card-img-full');
+    if (!cards.length) return;
+
+    function countUp(el, delay) {
+      var txt = el.textContent, m = txt.match(/\d+(?:\.\d+)?/);
+      if (!m || reduce) { el.classList.add('bjx-hz-done'); return; }
+      var end = parseFloat(m[0]), dec = (m[0].split('.')[1] || '').length, dur = 1100;
+      setTimeout(function () {
+        var t0 = performance.now();
+        (function step(t) {
+          var p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+          el.textContent = txt.replace(m[0], (end * e).toFixed(dec));
+          if (p < 1) requestAnimationFrame(step);
+          else { el.textContent = txt; el.classList.add('bjx-hz-done'); }
+        })(t0);
+      }, delay);
+    }
+
+    function ripple(card) {
+      if (reduce || card._bjxBusy) return;
+      var wrap = card.querySelector('.freq-img-wrap');
+      if (!wrap) return;
+      card._bjxBusy = true;
+      var left = 3;
+      for (var i = 0; i < 3; i++) {
+        var r = document.createElement('span');
+        r.className = 'bjx-ring';
+        r.style.animationDelay = (i * 0.28) + 's';
+        r.addEventListener('animationend', function () {
+          this.remove();
+          if (--left === 0) card._bjxBusy = false;
+        });
+        wrap.appendChild(r);
+      }
+      card.classList.add('bjx-active');
+      setTimeout(function () { card.classList.remove('bjx-active'); }, 1800);
+    }
+
+    cards.forEach(function (card, i) {
+      // pointerenter 同時涵蓋滑鼠移入與手機點擊
+      card.addEventListener('pointerenter', function () { ripple(card); });
+    });
+
+    if (hasIO) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          io.unobserve(en.target);
+          var idx = Array.prototype.indexOf.call(cards, en.target);
+          var hz = en.target.querySelector('.freq-label-hz');
+          if (hz) countUp(hz, (idx % 4) * 140);
+        });
+      }, { threshold: 0.5 });
+      cards.forEach(function (c) { io.observe(c); });
+    }
+  }
+
+  /* ---------- 2) 聲波分隔線 ---------- */
+  function wavePath(amp) {
+    // 16 段、共 2400 寬（兩倍寬度，平移 50% 正好無縫接回）
+    var d = 'M0,20 Q75,' + (20 - amp) + ' 150,20';
+    for (var i = 1; i < 16; i++) d += ' T' + (150 * (i + 1)) + ',20';
+    return d;
+  }
+  function makeWave() {
+    var wrap = document.createElement('div');
+    wrap.className = 'bjx-wave';
+    wrap.setAttribute('aria-hidden', 'true');
+    [18, 12, 8].forEach(function (amp) {
+      var ns = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('viewBox', '0 0 2400 40');
+      svg.setAttribute('preserveAspectRatio', 'none');
+      var p = document.createElementNS(ns, 'path');
+      p.setAttribute('d', wavePath(amp));
+      svg.appendChild(p);
+      wrap.appendChild(svg);
+    });
+    return wrap;
+  }
+  function initWaves() {
+    ['about', 'frequencies', 'highlights', 'faq'].forEach(function (id) {
+      var sec = document.getElementById(id);
+      if (!sec || sec.querySelector(':scope > .bjx-wave')) return;
+      var w = makeWave();
+      sec.insertBefore(w, sec.firstChild);
+      if (reduce) { w.classList.add('on'); return; }
+      if (hasIO) {
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) { w.classList.toggle('on', en.isIntersecting); });
+        }, { rootMargin: '80px 0px' }).observe(sec);
+      } else { w.classList.add('on'); }
+    });
+  }
+
+  /* ---------- 3) 輪播 ---------- */
+  function initCarousel(el, opts) {
+    if (!el || el._bjxCar) return;
+    el._bjxCar = true;
+    opts = opts || {};
+
+    var wrap = document.createElement('div');
+    wrap.className = 'bjx-car' + (opts.wrapClass ? ' ' + opts.wrapClass : '');
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
+
+    var prev = document.createElement('button');
+    prev.className = 'bjx-nav bjx-prev'; prev.type = 'button';
+    prev.setAttribute('aria-label', '上一張'); prev.innerHTML = '&#8249;';
+    var next = document.createElement('button');
+    next.className = 'bjx-nav bjx-next'; next.type = 'button';
+    next.setAttribute('aria-label', '下一張'); next.innerHTML = '&#8250;';
+    var dots = document.createElement('div');
+    dots.className = 'bjx-dots';
+    wrap.appendChild(prev); wrap.appendChild(next); wrap.appendChild(dots);
+
+    var inView = true, pausedUntil = 0, hovering = false, pages = 1;
+    var beh = reduce ? 'auto' : 'smooth';
+
+    function pageCount() {
+      var cw = el.clientWidth || 1;
+      return Math.max(1, Math.round(el.scrollWidth / cw - 0.0001 + 0.4)); // 最後一頁不足一頁也算一頁
+    }
+    function currentPage() {
+      var max = el.scrollWidth - el.clientWidth;
+      if (max <= 0 || pages <= 1) return 0;
+      return Math.round((el.scrollLeft / max) * (pages - 1));
+    }
+    function goTo(p) {
+      var max = el.scrollWidth - el.clientWidth;
+      var left = pages <= 1 ? 0 : (p / (pages - 1)) * max;
+      el.scrollTo({ left: left, behavior: beh });
+    }
+    function build() {
+      pages = pageCount();
+      var single = el.children.length < 2 || pages < 2;
+      wrap.classList.toggle('bjx-single', single);
+      prev.style.display = next.style.display = dots.style.display = single ? 'none' : '';
+      dots.innerHTML = '';
+      for (var i = 0; i < pages; i++) (function (i) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'bjx-dot';
+        b.setAttribute('aria-label', '第 ' + (i + 1) + ' 頁');
+        b.addEventListener('click', function () { pausedUntil = Date.now() + 9000; goTo(i); });
+        dots.appendChild(b);
+      })(i);
+      update();
+    }
+    function update() {
+      var c = currentPage();
+      var max = el.scrollWidth - el.clientWidth;
+      prev.disabled = el.scrollLeft <= 2;
+      next.disabled = el.scrollLeft >= max - 2;
+      Array.prototype.forEach.call(dots.children, function (d, i) { d.classList.toggle('on', i === c); });
+    }
+
+    prev.addEventListener('click', function () { pausedUntil = Date.now() + 9000; goTo(Math.max(0, currentPage() - 1)); });
+    next.addEventListener('click', function () { pausedUntil = Date.now() + 9000; goTo(Math.min(pages - 1, currentPage() + 1)); });
+    var raf = 0;
+    el.addEventListener('scroll', function () { if (!raf) raf = requestAnimationFrame(function () { raf = 0; update(); }); }, { passive: true });
+    el.addEventListener('touchstart', function () { pausedUntil = Date.now() + 9000; }, { passive: true });
+    wrap.addEventListener('mouseenter', function () { hovering = true; });
+    wrap.addEventListener('mouseleave', function () { hovering = false; });
+    wrap.addEventListener('focusin', function () { pausedUntil = Date.now() + 9000; });
+
+    // 內容（含後台動態載入的相片）有增減時重新計算頁數
+    if ('MutationObserver' in window) new MutationObserver(build).observe(el, { childList: true });
+    if ('ResizeObserver' in window) new ResizeObserver(build).observe(el);
+    else window.addEventListener('resize', build);
+    el.addEventListener('load', function () { build(); }, true);
+
+    if (hasIO) {
+      new IntersectionObserver(function (entries) { inView = entries[0].isIntersecting; }, { threshold: 0.3 }).observe(wrap);
+    }
+
+    function videoPlaying() {
+      var vs = el.querySelectorAll('video');
+      for (var i = 0; i < vs.length; i++) if (!vs[i].paused && !vs[i].ended) return true;
+      return false;
+    }
+    if (!reduce) {
+      setInterval(function () {
+        if (pages < 2 || !inView || hovering || document.hidden) return;
+        if (Date.now() < pausedUntil || videoPlaying()) return;
+        var c = currentPage();
+        goTo(c >= pages - 1 ? 0 : c + 1);
+      }, opts.interval || 5000);
+    }
+    build();
+  }
+
+  function initCarousels() {
+    var hl = document.getElementById('highlights-grid');
+    if (hl) { hl.classList.add('bjx-carousel'); initCarousel(hl, { interval: 4800 }); }
+
+    // 最新活動：只有 2 張以上才改成輪播，單張維持原本置中大圖
+    var le = document.getElementById('latest-events-gallery');
+    if (le) {
+      var tryLE = function () {
+        if (le._bjxCar) return;
+        if (le.children.length >= 2) { le.classList.add('bjx-carousel'); initCarousel(le, { wrapClass: 'bjx-car--latest', interval: 5200 }); }
+      };
+      tryLE();
+      if (!le._bjxCar && 'MutationObserver' in window) {
+        var mo = new MutationObserver(function () { tryLE(); if (le._bjxCar) mo.disconnect(); });
+        mo.observe(le, { childList: true });
+      }
+    }
+  }
+
+  function boot() {
+    try { initFrequencies(); } catch (e) { console.error('bjx freq', e); }
+    try { initWaves(); } catch (e) { console.error('bjx wave', e); }
+    try { initCarousels(); } catch (e) { console.error('bjx carousel', e); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
 </script>
 
