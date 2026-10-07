@@ -5899,6 +5899,8 @@ document.addEventListener('keydown', function(e) {
     if (!rows.length) return;
     var grid = document.getElementById("highlights-grid");
     if (!grid) return;
+    // 後台新增的相片排在最前面（依後台順序），原本寫在頁面裡的相片接在後面
+    var firstStatic = grid.firstElementChild;
     rows.forEach(function (r) {
       var item = document.createElement("div");
       item.className = "hl-item";
@@ -5928,7 +5930,7 @@ document.addEventListener('keydown', function(e) {
       frame.appendChild(img);
       frame.appendChild(overlay);
       item.appendChild(frame);
-      grid.appendChild(item);
+      grid.insertBefore(item, firstStatic);
     });
   }
 
@@ -5997,7 +5999,7 @@ document.addEventListener('keydown', function(e) {
     try {
       var res = await sbClient
         .from("gallery_images")
-        .select("id,url,caption,category,sort_order,media_type")
+        .select("*")
         .order("sort_order", { ascending: true });
       if (res.error) throw res.error;
       var rows = res.data || [];
