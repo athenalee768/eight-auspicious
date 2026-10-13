@@ -120,6 +120,14 @@
   .scrim.open{display:block}
 
   /* 訂單 */
+  .wbox{border:1px solid var(--navy-l);padding:12px 16px;margin-bottom:10px;background:var(--navy)}
+  .wbal{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .wbal b{color:var(--gold-l);font-size:18px;letter-spacing:1px}
+  .wbox details{margin-top:8px;font-size:13px}
+  .wbox summary{cursor:pointer;opacity:.75}
+  .wlist{margin-top:6px}
+  .wrow{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px dashed var(--navy-l)}
+  .wrow .pos{color:#8fd19e}.wrow .neg{color:#e8a0a0}
   .order{border:1px solid var(--navy-l);padding:14px 16px;margin-bottom:12px;background:var(--navy)}
   .order .oh{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:14px}
   .order .no{color:var(--gold-l);letter-spacing:1px}
@@ -217,6 +225,7 @@
         <label><input type="radio" name="pay" value="Credit">信用卡</label>
         <label><input type="radio" name="pay" value="ATM">ATM 轉帳</label>
         <label><input type="radio" name="pay" value="CVS">超商代碼</label>
+        <label id="coWalletLbl" style="display:none"><input type="radio" name="pay" value="WALLET" id="coWalletRadio"><span id="coWalletTxt"></span></label>
       </div>
     </div>
     <div class="sumrow total"><span>應付金額</span><span id="coTotal"></span></div>
@@ -259,9 +268,9 @@
 
   var TIER_LABEL = { guest: '一般價', member: '會員價', dealer: '經銷商價' };
   var STATUS_LABEL = { pending_payment: '待付款', paid: '已付款', shipped: '已出貨', completed: '已完成', cancelled: '已取消' };
-  var PAY_LABEL = { ALL: '綠界付款', Credit: '信用卡', ATM: 'ATM 轉帳', CVS: '超商代碼' };
+  var PAY_LABEL = { ALL: '綠界付款', Credit: '信用卡', ATM: 'ATM 轉帳', CVS: '超商代碼', WALLET: '儲值金' };
 
-  var state = { user: null, profile: null, info: { tier: 'guest', shop_open: true, member_percent_off: 0, shipping_fee: 0, free_shipping_threshold: 0, require_login: false }, products: [], cat: '', cart: [] };
+  var state = { user: null, profile: null, info: { tier: 'guest', shop_open: true, member_percent_off: 0, shipping_fee: 0, free_shipping_threshold: 0, require_login: false, wallet_enabled: false, passes_enabled: true }, wallet: null, products: [], cat: '', cart: [] };
 
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
@@ -269,6 +278,8 @@
   function zhe(pct){ var v = Math.round((100 - pct) * 10) / 10; return (v % 10 === 0) ? String(v / 10) : String(v); }
   function toast(t){ var el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(function(){ el.classList.remove('show'); }, 2400); }
   function errText(e){ return (e && (e.message || e.error_description || e.msg)) || String(e); }
+  var WK_LABEL = { topup: '儲值', adjust: '扣款／調整', spend: '消費', refund: '退回' };
+  function walletUsable(total){ return !!(state.user && state.wallet && state.wallet.wallet_enabled && state.wallet.balance >= total); }
 
   // ---------- 購物車（存在瀏覽器；價格一律以伺服器為準） ----------
   function loadCart(){
@@ -314,6 +325,8 @@
       var pr = await sb.from('profiles').select('*').eq('user_id', state.user.id).maybeSingle();
       state.profile = pr.data || null;
     }
+    state.wallet = null;
+    if (state.user) { try { var w = await sb.rpc('my_wallet'); if (!w.error && w.data) state.wallet = w.data; } catch(e){} }
     var info = await sb.rpc('shop_info');
     if (!info.error && info.data) state.info = info.data;
     var prods = await sb.rpc('shop_products');
@@ -508,6 +521,7 @@
       '<div class="field"><label for="acPhone">電話</label><input id="acPhone" type="tel" value="' + esc(p.phone || '') + '"></div></div>' +
       '<button class="btn-o" id="acSave">儲存資料</button><div class="msg" id="acMsg"></div>' +
       (t !== 'dealer' ? '<div class="sub-h" style="margin:18px 0 8px;color:var(--gold-l);letter-spacing:2px">經銷商代碼</div><div class="field" style="display:flex;gap:10px"><input id="acCode" placeholder="輸入代碼升級為經銷商" style="flex:1"><button class="btn-o" id="acRedeem">啟用</button></div><div class="msg" id="acCodeMsg"></div>' : '') +
+      '<div id="acWallet"></div>' +
       '<div class="sub-h" style="margin:18px 0 8px;color:var(--gold-l);letter-spacing:2px">我的訂單</div><div id="acOrders">載入中...</div>' +
       '<div style="margin-top:18px"><button class="btn-o" id="acLogout">登出</button></div>';
     $('acSave').addEventListener('click', async function(){
@@ -524,27 +538,69 @@
       else { m.textContent = '已升級為經銷商！'; m.className = 'msg ok'; await refresh(); renderAccount(); }
     });
     $('acLogout').addEventListener('click', async function(){ await sb.auth.signOut(); closeOv('authOv'); toast('已登出'); });
+    renderWalletBox();
     loadMyOrders();
   }
 
-  function orderHtml(o){
+  // 儲值金餘額與課程套票（只顯示已開放或已有紀錄的項目）
+  function renderWalletBox(){
+    var el = $('acWallet'); if (!el) return;
+    var w = state.wallet;
+    if (!w) { el.innerHTML = ''; return; }
+    var h = '';
+    var showWallet = w.wallet_enabled || w.balance !== 0 || (w.entries && w.entries.length);
+    var showPass = w.passes_enabled || (w.passes && w.passes.length);
+    if (showWallet) {
+      h += '<div class="sub-h" style="margin:18px 0 8px;color:var(--gold-l);letter-spacing:2px">儲值金</div>' +
+        '<div class="wbox"><div class="wbal"><span style="opacity:.7;font-size:13px">目前餘額</span><b>' + money(w.balance) + '</b></div>';
+      if (w.entries && w.entries.length) {
+        h += '<details><summary>查看明細（最近 ' + w.entries.length + ' 筆）</summary><div class="wlist">' + w.entries.map(function(e){
+          return '<div class="wrow"><span>' + esc(new Date(e.created_at).toLocaleDateString('zh-TW')) + '　' + esc(WK_LABEL[e.kind] || e.kind) + (e.note ? '・' + esc(e.note) : '') + (e.order_no ? '（' + esc(e.order_no) + '）' : '') + '</span><span class="' + (e.amount > 0 ? 'pos' : 'neg') + '">' + (e.amount > 0 ? '+' : '−') + money(Math.abs(e.amount)) + '</span></div>';
+        }).join('') + '</div></details>';
+      } else h += '<div style="opacity:.6;font-size:13px">尚無紀錄</div>';
+      h += '</div>';
+    }
+    if (showPass) {
+      h += '<div class="sub-h" style="margin:18px 0 8px;color:var(--gold-l);letter-spacing:2px">課程套票</div>';
+      if (!w.passes || !w.passes.length) h += '<div style="opacity:.6;font-size:14px">尚無套票</div>';
+      else h += w.passes.map(function(ps){
+        return '<div class="wbox"><div class="wbal"><span>' + esc(ps.title) + '</span><b>剩 ' + ps.remaining + ' / ' + ps.total + ' 堂</b></div>' +
+          '<details><summary>查看使用紀錄</summary><div class="wlist">' + ps.entries.map(function(e){
+            return '<div class="wrow"><span>' + esc(new Date(e.created_at).toLocaleDateString('zh-TW')) + (e.note ? '　' + esc(e.note) : '') + '</span><span class="' + (e.delta > 0 ? 'pos' : 'neg') + '">' + (e.delta > 0 ? '+' : '−') + Math.abs(e.delta) + ' 堂</span></div>';
+          }).join('') + '</div></details></div>';
+      }).join('');
+    }
+    el.innerHTML = h;
+  }
+
+  function orderHtml(o, mine){
     var items = (o.items || []).map(function(i){ return '<li>' + esc(i.name) + ' × ' + i.qty + '（' + money(i.unit_price) + '）</li>'; }).join('');
     return '<div class="order"><div class="oh"><span class="no">' + esc(o.order_no) + '</span><span class="st ' + esc(o.status) + '">' + esc(STATUS_LABEL[o.status] || o.status) + '</span></div>' +
       '<div style="font-size:12px;opacity:.6">' + esc(new Date(o.created_at).toLocaleString('zh-TW')) + '</div>' +
       '<ul>' + items + '</ul>' +
       '<div class="sumrow" style="margin:0"><span>合計（含運費 ' + money(o.shipping_fee) + '）</span><span>' + money(o.total) + '</span></div>' +
-      (o.status === 'pending_payment' ? '<div style="margin-top:10px"><button class="btn-o repay" data-no="' + esc(o.order_no) + '">繼續付款</button></div>' : '') + '</div>';
+      (o.status === 'pending_payment' ? '<div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn-o repay" data-no="' + esc(o.order_no) + '">繼續付款</button>' + (mine && walletUsable(o.total) ? '<button class="btn-o walletpay" data-no="' + esc(o.order_no) + '">用儲值金付款（餘額 ' + money(state.wallet.balance) + '）</button>' : '') + '</div>' : '') + '</div>';
   }
   function bindRepay(root){
     root.querySelectorAll('.repay').forEach(function(b){ b.addEventListener('click', function(){ b.disabled = true; goPay(b.getAttribute('data-no')).then(function(ok){ if (!ok) b.disabled = false; }); }); });
+  }
+  function bindWalletPay(root){
+    root.querySelectorAll('.walletpay').forEach(function(b){ b.addEventListener('click', async function(){
+      if (!confirm('確定以儲值金支付此訂單？')) return;
+      b.disabled = true;
+      var r = await sb.rpc('pay_order_with_wallet', { p_order_no: b.getAttribute('data-no') });
+      if (r.error) { toast(errText(r.error)); b.disabled = false; return; }
+      toast('已用儲值金付款成功');
+      await refresh(); renderAccount();
+    }); });
   }
   async function loadMyOrders(){
     var el = $('acOrders');
     var r = await sb.from('orders').select('order_no,status,total,shipping_fee,items,created_at').order('created_at', { ascending: false }).limit(30);
     if (r.error) { el.textContent = '載入失敗：' + errText(r.error); return; }
     if (!r.data.length) { el.innerHTML = '<div style="opacity:.6;font-size:14px">尚無訂單</div>'; return; }
-    el.innerHTML = r.data.map(orderHtml).join('');
-    bindRepay(el);
+    el.innerHTML = r.data.map(function(o){ return orderHtml(o, true); }).join('');
+    bindRepay(el); bindWalletPay(el);
   }
 
   // ---------- 結帳 ----------
@@ -555,7 +611,18 @@
     if (!$('coName').value) $('coName').value = p.name || '';
     if (!$('coPhone').value) $('coPhone').value = p.phone || '';
     if (!$('coEmail').value) $('coEmail').value = (state.user && state.user.email) || '';
-    $('coTotal').textContent = money(cartTotals().total);
+    var tot = cartTotals().total;
+    $('coTotal').textContent = money(tot);
+    var wl = $('coWalletLbl'), wr = $('coWalletRadio');
+    if (state.user && state.wallet && state.wallet.wallet_enabled) {
+      var okw = state.wallet.balance >= tot;
+      wl.style.display = ''; wr.disabled = !okw;
+      $('coWalletTxt').textContent = '儲值金（餘額 ' + money(state.wallet.balance) + (okw ? '）' : '，不足）');
+      if (!okw && wr.checked) document.querySelector('input[name=pay][value=ALL]').checked = true;
+    } else {
+      wl.style.display = 'none'; wr.disabled = true;
+      if (wr.checked) document.querySelector('input[name=pay][value=ALL]').checked = true;
+    }
     $('coMsg').textContent = ''; $('coMsg').className = 'msg';
     closeCart(); openOv('checkoutOv');
   }
@@ -576,6 +643,14 @@
     if (r.error) { btn.disabled = false; coMsg(errText(r.error), false); refresh(); return; }
     // 訂單已建立，清空購物車再前往付款
     state.cart = []; saveCart(); renderCart();
+    if (info.payment_method === 'WALLET') {
+      coMsg('訂單 ' + r.data.order_no + ' 已建立，正在以儲值金付款...', true);
+      var wp = await sb.rpc('pay_order_with_wallet', { p_order_no: r.data.order_no });
+      if (wp.error) { coMsg('訂單 ' + r.data.order_no + ' 已建立，但儲值金付款失敗：' + errText(wp.error) + '。可到「我的帳號 → 我的訂單」改用其他方式付款。', false); btn.disabled = false; refresh(); return; }
+      coMsg('付款成功！訂單 ' + r.data.order_no + ' 已用儲值金支付，我們會盡快為您出貨。', true);
+      btn.disabled = false; refresh();
+      return;
+    }
     coMsg('訂單 ' + r.data.order_no + ' 已建立，正在前往付款頁面...', true);
     var ok = await goPay(r.data.order_no);
     if (!ok) { coMsg('訂單 ' + r.data.order_no + ' 已建立，但付款頁面開啟失敗。請到「我的帳號 → 我的訂單」或「訪客查詢訂單」重新付款。', false); btn.disabled = false; }

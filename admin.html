@@ -529,6 +529,7 @@
         <button data-sec="products">商品</button>
         <button data-sec="members">會員</button>
         <button data-sec="codes">經銷商代碼</button>
+        <button data-sec="wallet">儲值／套票</button>
         <button data-sec="settings">價格與運費設定</button>
       </div>
       <div class="sub" id="shopSetupNote" style="display:none;color:var(--err)"></div>
@@ -588,6 +589,38 @@
           </table>
         </div>
         <div class="sub" style="margin-top:14px">客人自行註冊後預設為「會員」。你可以在這裡手動把某位客人改成「經銷商」或改回「會員」。</div>
+      </div>
+
+      <!-- 儲值金／套票 -->
+      <div class="shop-sec" id="shopSec-wallet">
+        <div class="sub-h">功能開關</div>
+        <div class="add-photo-box">
+          <div class="shop-grid">
+            <div class="field"><label for="wlEnabled">儲值金（客人可儲值、用於商城付款）</label>
+              <select id="wlEnabled" class="status"><option value="false">關閉</option><option value="true">開啟</option></select></div>
+            <div class="field"><label for="wlPasses">課程套票（堂數）</label>
+              <select id="wlPasses" class="status"><option value="true">開啟</option><option value="false">關閉</option></select></div>
+          </div>
+          <button class="btn" id="wlSave">儲存開關</button>
+          <span class="msg" id="wlMsg" style="margin-left:12px"></span>
+          <div class="sub" style="margin-top:12px;color:var(--err)">提醒：收取儲值款依法需要營業登記（統一編號）與履約保障（例如銀行履約保證或信託專戶），且不得訂定使用期限。尚未完成前請保持「儲值金」關閉。套票屬預收款，建議先向會計師確認處理方式。</div>
+        </div>
+
+        <div class="sub-h">會員儲值金與套票</div>
+        <div class="toolbar">
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input type="text" id="wlSearch" placeholder="搜尋 Email／姓名／電話" style="min-width:220px">
+            <button class="btn-outline" id="wlGo">搜尋</button>
+          </div>
+          <span class="sub" id="wlCount" style="margin:0"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>會員</th><th>儲值金餘額</th><th>課程套票（剩餘堂數）</th><th></th></tr></thead>
+            <tbody id="wlBody"></tbody>
+          </table>
+        </div>
+        <div class="sub" style="margin-top:14px">收到客人款項後，在這裡幫他「儲值」；客人在商城「我的帳號」可自行查詢餘額、剩餘堂數與明細。上完課請按套票旁的「扣 1 堂」。所有異動都會留下紀錄，無法直接改餘額。</div>
       </div>
 
       <!-- 經銷商代碼 -->
@@ -1887,6 +1920,8 @@
     document.getElementById('ssFree').value = s.free_shipping_threshold || 0;
     document.getElementById('ssLogin').value = String(!!s.require_login);
     document.getElementById('ssOpen').value = String(s.shop_open !== false);
+    document.getElementById('wlEnabled').value = String(!!s.wallet_enabled);
+    document.getElementById('wlPasses').value = String(s.passes_enabled !== false);
   }
   document.getElementById('ssSave').addEventListener('click', async function(){
     var msg = document.getElementById('ssMsg');
@@ -2083,6 +2118,92 @@
         var u = await sb.from('profiles').update({ role: sel.value }).eq('user_id', m.user_id);
         if (u.error) { alert('更新失敗：' + u.error.message); sel.value = m.role; return; }
         m.role = sel.value; loadShopMembers();
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  // ---- 儲值金／套票 ----
+  document.querySelector('#shopNav button[data-sec="wallet"]').addEventListener('click', function(){ loadWalletMembers(); });
+  document.getElementById('wlSave').addEventListener('click', async function(){
+    var msg = document.getElementById('wlMsg');
+    var on = document.getElementById('wlEnabled').value === 'true';
+    if (on && !confirm('開啟儲值金前請確認：已完成營業登記（有統一編號）、已做好履約保障，且儲值金不設使用期限。確定要開啟嗎？')) return;
+    var r = await sb.from('shop_settings').update({ wallet_enabled: on, passes_enabled: document.getElementById('wlPasses').value === 'true' }).eq('id', 1);
+    sFlash(msg, r.error ? '儲存失敗：' + r.error.message + '（若提到 column，請先執行 supabase_schema_wallet.sql）' : '已儲存', !r.error);
+  });
+  document.getElementById('wlGo').addEventListener('click', function(){ loadWalletMembers(); });
+  document.getElementById('wlSearch').addEventListener('keydown', function(e){ if (e.key === 'Enter') loadWalletMembers(); });
+
+  async function loadWalletMembers(){
+    var body = document.getElementById('wlBody');
+    var q = document.getElementById('wlSearch').value.trim();
+    var r = await sb.rpc('admin_wallet_members', { p_q: q || null });
+    body.innerHTML = '';
+    if (r.error) {
+      document.getElementById('wlCount').textContent = '';
+      body.innerHTML = '<tr><td colspan="4" style="color:var(--err)">載入失敗：' + sEsc(r.error.message) + '（請先在 Supabase 執行 supabase_schema_wallet.sql）</td></tr>';
+      return;
+    }
+    var rows = r.data || [];
+    document.getElementById('wlCount').textContent = '共 ' + rows.length + ' 位';
+    rows.forEach(function(m){
+      var tr = document.createElement('tr');
+      var passes = (m.passes || []).map(function(ps){
+        return '<div style="margin-bottom:6px">' + sEsc(ps.title) + '：<b>剩 ' + ps.remaining + ' / ' + ps.total + ' 堂</b> ' +
+          '<button class="btn-small p-use" data-id="' + sEsc(ps.id) + '">扣 1 堂</button> <button class="btn-small p-adj" data-id="' + sEsc(ps.id) + '">調整</button></div>';
+      }).join('') || '<span style="opacity:.5">—</span>';
+      tr.innerHTML =
+        '<td>' + sEsc(m.name || '') + '<br><span style="opacity:.6;font-size:12px">' + sEsc(m.email || '') + '　' + sEsc(m.phone || '') + '</span></td>' +
+        '<td><b>' + sMoney(m.balance) + '</b></td>' +
+        '<td>' + passes + '</td>' +
+        '<td style="white-space:nowrap"><button class="btn-small w-adj">儲值／扣款</button> <button class="btn-small p-new">發套票</button> <button class="btn-small w-log">明細</button></td>';
+      tr.querySelector('.w-adj').addEventListener('click', async function(){
+        var a = prompt('金額（入帳填正數，例如 5000；扣款填負數，例如 -500）：', '');
+        if (a === null || a.trim() === '') return;
+        var n = parseInt(a, 10); if (!n) { alert('金額不正確'); return; }
+        var note = prompt('備註（例如：現金儲值／匯款後四碼 1234）：', '');
+        if (note === null) return;
+        var u = await sb.rpc('admin_wallet_adjust', { p_user: m.user_id, p_amount: n, p_note: note });
+        if (u.error) { alert('失敗：' + u.error.message); return; }
+        loadWalletMembers();
+      });
+      tr.querySelector('.p-new').addEventListener('click', async function(){
+        var t = prompt('套票名稱（例如：瑜珈 10 堂套票）：', ''); if (!t) return;
+        var c = prompt('堂數：', '10'); if (c === null) return;
+        var n = parseInt(c, 10); if (!n || n < 1) { alert('堂數不正確'); return; }
+        var note = prompt('備註（選填）：', ''); if (note === null) return;
+        var u = await sb.rpc('admin_pass_grant', { p_user: m.user_id, p_title: t, p_sessions: n, p_note: note });
+        if (u.error) { alert('失敗：' + u.error.message); return; }
+        loadWalletMembers();
+      });
+      tr.querySelectorAll('.p-use').forEach(function(b){ b.addEventListener('click', async function(){
+        var note = prompt('備註（例如：4/12 瑜珈課）：', ''); if (note === null) return;
+        var u = await sb.rpc('admin_pass_adjust', { p_pass: b.dataset.id, p_delta: -1, p_note: note });
+        if (u.error) { alert('失敗：' + u.error.message); return; }
+        loadWalletMembers();
+      }); });
+      tr.querySelectorAll('.p-adj').forEach(function(b){ b.addEventListener('click', async function(){
+        var a = prompt('調整堂數（加堂填正數，扣堂填負數）：', ''); if (a === null || a.trim() === '') return;
+        var n = parseInt(a, 10); if (!n) { alert('堂數不正確'); return; }
+        var note = prompt('備註：', ''); if (note === null) return;
+        var u = await sb.rpc('admin_pass_adjust', { p_pass: b.dataset.id, p_delta: n, p_note: note });
+        if (u.error) { alert('失敗：' + u.error.message); return; }
+        loadWalletMembers();
+      }); });
+      var detail = null;
+      tr.querySelector('.w-log').addEventListener('click', async function(){
+        if (detail) { detail.remove(); detail = null; return; }
+        var a = await sb.from('wallet_entries').select('*').eq('user_id', m.user_id).order('created_at', { ascending: false }).limit(50);
+        var b = await sb.from('pass_entries').select('*, passes(title)').eq('user_id', m.user_id).order('created_at', { ascending: false }).limit(50);
+        var h = '<b>儲值金明細</b><br>' + ((a.data || []).map(function(e){
+          return sEsc(sTime(e.created_at)) + '　' + (e.amount > 0 ? '+' : '−') + sMoney(Math.abs(e.amount)) + '　' + sEsc(e.kind) + (e.note ? '・' + sEsc(e.note) : '') + (e.order_no ? '（' + sEsc(e.order_no) + '）' : '');
+        }).join('<br>') || '—') + '<br><br><b>套票明細</b><br>' + ((b.data || []).map(function(e){
+          return sEsc(sTime(e.created_at)) + '　' + sEsc((e.passes && e.passes.title) || '') + '　' + (e.delta > 0 ? '+' : '−') + Math.abs(e.delta) + ' 堂' + (e.note ? '・' + sEsc(e.note) : '');
+        }).join('<br>') || '—');
+        detail = document.createElement('tr');
+        detail.innerHTML = '<td colspan="4" style="font-size:13px;line-height:1.7;background:rgba(255,255,255,.03)">' + h + '</td>';
+        tr.after(detail);
       });
       body.appendChild(tr);
     });
