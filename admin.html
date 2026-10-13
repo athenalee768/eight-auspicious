@@ -1249,11 +1249,17 @@
       btn.disabled = true;
       msg.textContent = '刪除中...'; msg.className = 'msg';
       try {
-        var result = await sb.from(row.table).delete().eq('id', row.id);
+        var result = await sb.from(row.table).delete().eq('id', row.id).select('id');
         if (result.error) throw result.error;
+        // Supabase 在沒有刪除權限時不會報錯，只是刪 0 筆，這裡要明確告知
+        if (!result.data || !result.data.length) {
+          throw new Error('資料庫沒有刪除任何資料（缺少刪除權限）。請在 Supabase 執行 supabase_fix_delete.sql 後再試一次');
+        }
         loadCourses();
       } catch(e) {
-        msg.textContent = '刪除失敗：' + (e.message || e); msg.className = 'msg err';
+        var em = e.message || String(e);
+        if (/foreign key|violates/i.test(em)) em = '這筆課程已有報名資料連結，無法直接刪除（' + em + '）';
+        msg.textContent = '刪除失敗：' + em; msg.className = 'msg err';
         btn.disabled = false;
       }
     });
