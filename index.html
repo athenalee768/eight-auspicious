@@ -3048,6 +3048,16 @@ p, li { font-size: 26px !important; }
 @media (max-width: 1024px) {
   .sub-menu { display: none; }
 }
+
+/* 抽一張入口橫幅 */
+#draw-one-banner{padding:34px 20px}
+#draw-one-banner .d1-box{max-width:980px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:26px 36px;border:1px solid var(--border);background:linear-gradient(135deg,rgba(30,68,112,.55),rgba(11,31,58,.75));box-shadow:0 0 40px rgba(201,168,76,.12)}
+#draw-one-banner .d1-t{flex:1 1 360px;text-align:left}
+#draw-one-banner .d1-k{font-size:14px;letter-spacing:4px;color:var(--gold);margin-bottom:6px}
+#draw-one-banner .d1-h{font-size:26px;letter-spacing:3px;color:var(--gold-p);margin:0 0 6px}
+#draw-one-banner .d1-p{font-size:17px;letter-spacing:1px;color:var(--text-c);margin:0}
+#draw-one-banner .btn-primary{font-size:20px;padding:13px 30px;white-space:nowrap}
+@media(max-width:640px){#draw-one-banner .d1-box{padding:22px 20px;text-align:center}#draw-one-banner .d1-t{text-align:center}}
 </style>
 
 <style>
@@ -3462,7 +3472,12 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
         <li><a href="#highlights"><span class="i18n-zh">活動花絮</span><span class="i18n-en">Event Snapshots</span></a></li>
       </ul>
     </li>
-    <li><a href="shop.html"><span class="i18n-zh">購物商城</span><span class="i18n-en">Shop</span></a></li>
+    <li class="has-sub"><a href="shop.html"><span class="i18n-zh">購物商城</span><span class="i18n-en">Shop</span></a>
+      <ul class="sub-menu">
+        <li><a href="shop.html"><span class="i18n-zh">購物商城總覽</span><span class="i18n-en">Shop Overview</span></a></li>
+        <li><a href="https://athenalee768.github.io/in-shivas-eyes/" target="_blank" rel="noopener"><span class="i18n-zh">線上抽牌</span><span class="i18n-en">Card Draw</span></a></li>
+      </ul>
+    </li>
     <li class="has-sub"><a href="#faq">FAQ</a>
       <ul class="sub-menu">
         <li><a href="#faq"><span class="i18n-zh">常見問題</span><span class="i18n-en">FAQ</span></a></li>
@@ -3545,6 +3560,18 @@ if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
     <div id="brand-poster-banner" class="event-banner-wrap reveal">
       <img id="brand_poster_image" class="event-banner-img" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="八吉祥音樂工作室 療癒 x 音樂 x 平衡" loading="eager">
     </div>
+  </div>
+</section>
+
+<!-- DRAW ONE BANNER -->
+<section id="draw-one-banner" aria-label="線上抽牌">
+  <div class="d1-box reveal">
+    <div class="d1-t">
+      <div class="d1-k">DRAW ONE</div>
+      <h2 class="d1-h"><span class="i18n-zh">不知道選哪副牌？先抽一張</span><span class="i18n-en">Not sure which deck? Draw one first</span></h2>
+      <p class="d1-p"><span class="i18n-zh">線上抽一張牌，聽聽牌卡想對你說的話，再回商城帶走屬於你的那一副。</span><span class="i18n-en">Draw a card online, hear what it has to say, then bring your own deck home from our shop.</span></p>
+    </div>
+    <a class="btn-primary" href="https://athenalee768.github.io/in-shivas-eyes/" target="_blank" rel="noopener"><span class="i18n-zh">線上抽牌</span><span class="i18n-en">Draw a Card</span></a>
   </div>
 </section>
 
