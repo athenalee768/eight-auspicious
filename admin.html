@@ -1133,6 +1133,22 @@
   // ---- 課程管理：編輯 courses / membership_plans 的主圖、說明、特色列表 ----
   var coursesCache = []; // [{table, id, name, category, image_url, description, features_text}]
 
+  var coursePhotosCache = {}; // "table:id" -> [{id, image_url, sort_order}, ...]
+  function coursePhotosKey(table, id){ return table + ':' + id; }
+
+  async function loadCoursePhotos(){
+    coursePhotosCache = {};
+    try {
+      var r = await sb.from('course_photos').select('id,item_type,item_id,image_url,sort_order').order('sort_order', { ascending: true });
+      if (r.error) return; // 資料表還沒建立就先跳過，不影響其他功能
+      (r.data || []).forEach(function(row){
+        var key = coursePhotosKey(row.item_type, row.item_id);
+        if (!coursePhotosCache[key]) coursePhotosCache[key] = [];
+        coursePhotosCache[key].push(row);
+      });
+    } catch (e) { /* course_photos 資料表尚未建立，略過即可 */ }
+  }
+
   async function loadCourses(){
     var list = document.getElementById('coursesList');
     list.innerHTML = '載入中...';
@@ -1144,6 +1160,8 @@
       .order('sort_order', { ascending: true });
     if (coursesRes.error) { list.innerHTML = '載入失敗：' + coursesRes.error.message; return; }
     if (plansRes.error) { list.innerHTML = '載入失敗：' + plansRes.error.message; return; }
+
+    await loadCoursePhotos();
 
     coursesCache = (coursesRes.data || []).map(function(r){ r.table = 'courses'; return r; })
       .concat((plansRes.data || []).map(function(r){ r.table = 'membership_plans'; r.category = '會員專屬方案'; return r; }));
@@ -1227,6 +1245,12 @@
             '<input type="text" class="course-pricenoteen-input" value="' + (row.price_note_en ? escapeHtml(row.price_note_en) : '') + '" placeholder="留空則英文版也顯示中文價格文字">' +
           '</div>'
         : '') +
+        '<div class="field" style="margin-top:8px">' +
+          '<label>更多照片（選填，前台使用者點進「詳情」之後才會顯示，卡片正面仍只會顯示上面的主圖）</label>' +
+          '<div class="course-extra-photos" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px"></div>' +
+          '<input type="file" accept="image/*" class="course-extra-photo-input">' +
+          '<span class="msg extra-photo-msg"></span>' +
+        '</div>' +
         '<div class="photo-card-actions">' +
           '<button class="btn-small save">儲存</button>' +
           '<button class="btn-small btn-danger del">刪除課程</button>' +
@@ -1242,6 +1266,72 @@
     var featEnInput = card.querySelector('.course-featuresen-input');
     var priceNoteEnInput = card.querySelector('.course-pricenoteen-input');
     var msg = card.querySelector('.msg');
+
+    // ---- 更多照片：只有前台「詳情」彈窗才會顯示，卡片正面維持只有一張主圖 ----
+    var extraPhotosWrap = card.querySelector('.course-extra-photos');
+    var extraPhotoInput = card.querySelector('.course-extra-photo-input');
+    var extraPhotoMsg = card.querySelector('.extra-photo-msg');
+
+    function renderExtraPhotos(){
+      var photos = coursePhotosCache[coursePhotosKey(row.table, row.id)] || [];
+      extraPhotosWrap.innerHTML = '';
+      photos.forEach(function(p){
+        var thumb = document.createElement('div');
+        thumb.style.position = 'relative';
+        thumb.style.width = '64px';
+        thumb.style.height = '64px';
+        thumb.innerHTML =
+          '<img src="' + p.image_url + '" style="width:64px;height:64px;object-fit:cover;border-radius:4px">' +
+          '<button type="button" class="extra-photo-del" title="刪除這張照片" ' +
+            'style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#c0392b;color:#fff;cursor:pointer;font-size:12px;line-height:20px;padding:0">×</button>';
+        thumb.querySelector('.extra-photo-del').addEventListener('click', async function(){
+          if (!confirm('確定要刪除這張照片嗎？')) return;
+          try {
+            var delResult = await sb.from('course_photos').delete().eq('id', p.id);
+            if (delResult.error) throw delResult.error;
+            await loadCoursePhotos();
+            renderExtraPhotos();
+          } catch(e) {
+            extraPhotoMsg.textContent = '刪除失敗：' + (e.message || e); extraPhotoMsg.className = 'msg err';
+          }
+        });
+        extraPhotosWrap.appendChild(thumb);
+      });
+    }
+    renderExtraPhotos();
+
+    if (extraPhotoInput) {
+      extraPhotoInput.addEventListener('change', async function(){
+        var file = extraPhotoInput.files[0];
+        if (!file) return;
+        extraPhotoMsg.textContent = '上傳中...'; extraPhotoMsg.className = 'msg';
+        try {
+          var url = await uploadImageFile(file, 'course-detail');
+          var existing = coursePhotosCache[coursePhotosKey(row.table, row.id)] || [];
+          var nextSort = existing.length
+            ? Math.max.apply(null, existing.map(function(p){ return p.sort_order || 0; })) + 1
+            : 0;
+          var insResult = await sb.from('course_photos').insert({
+            item_type: row.table,
+            item_id: row.id,
+            image_url: url,
+            sort_order: nextSort
+          });
+          if (insResult.error) throw insResult.error;
+          extraPhotoInput.value = '';
+          extraPhotoMsg.textContent = '已新增'; extraPhotoMsg.className = 'msg ok';
+          setTimeout(function(){ extraPhotoMsg.textContent = ''; }, 2000);
+          await loadCoursePhotos();
+          renderExtraPhotos();
+        } catch(e) {
+          var em = e.message || String(e);
+          if (/relation .* does not exist/i.test(em) || /course_photos/i.test(em)) {
+            em = '尚未建立 course_photos 資料表，請先在 Supabase SQL Editor 執行 course_photos_table.sql';
+          }
+          extraPhotoMsg.textContent = '上傳失敗：' + em; extraPhotoMsg.className = 'msg err';
+        }
+      });
+    }
 
     card.querySelector('.del').addEventListener('click', async function(){
       if (!confirm('確定要刪除「' + row.name + '」嗎？刪除後網站上會立刻看不到這個課程／方案，此動作無法復原。')) return;

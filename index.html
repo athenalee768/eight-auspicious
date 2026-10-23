@@ -2599,6 +2599,28 @@ body.lang-en .t3-name-en {
   .modal-img { max-height: 50vw; }
 }
 
+/* 更多照片縮圖列：點進詳情彈窗後，主圖下方的小縮圖列，點縮圖可切換主圖 */
+.modal-gallery-strip {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-gallery-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: .55;
+  border: 1.5px solid transparent;
+  flex-shrink: 0;
+  transition: opacity .2s, border-color .2s;
+}
+.modal-gallery-thumb:hover { opacity: .85; }
+.modal-gallery-thumb.active { opacity: 1; border-color: var(--gold); }
+
 /* ═══════════════════════════════════════════════════════
    TRAVEL HEALING SECTION — 療癒旅行規畫
 ═══════════════════════════════════════════════════════ */
@@ -5260,6 +5282,42 @@ document.addEventListener('keydown', function(e) {
     return (s || "").replace(/\s+/g, "");
   }
 
+  // ---- 課程／方案「更多照片」：卡片正面只放主圖，點進詳情彈窗後才顯示縮圖列，
+  // 點縮圖可以切換彈窗裡的大圖。photosByKey 由 loadPricingData() 統一抓取、填好。 ----
+  var photosByKey = {};
+  function photoKey(table, id) {
+    return table + ":" + id;
+  }
+  function applyGalleryPhotos(modalId, mainImageUrl, extraPhotos) {
+    var topEl = document.querySelector("#" + modalId + " .modal-top");
+    if (!topEl) return;
+    var mainImg = topEl.querySelector(".modal-img");
+    var oldStrip = topEl.querySelector(".modal-gallery-strip");
+    if (oldStrip) oldStrip.remove();
+    var urls = [];
+    if (mainImageUrl) urls.push(mainImageUrl);
+    (extraPhotos || []).forEach(function (p) {
+      if (p.image_url && urls.indexOf(p.image_url) === -1) urls.push(p.image_url);
+    });
+    if (urls.length < 2) return; // 只有一張（或沒有）圖就不用顯示縮圖列
+    var strip = document.createElement("div");
+    strip.className = "modal-gallery-strip";
+    urls.forEach(function (url, i) {
+      var thumb = document.createElement("img");
+      thumb.className = "modal-gallery-thumb" + (i === 0 ? " active" : "");
+      thumb.src = url;
+      thumb.alt = "";
+      thumb.loading = "lazy";
+      thumb.addEventListener("click", function () {
+        if (mainImg) mainImg.src = url;
+        strip.querySelectorAll(".modal-gallery-thumb").forEach(function (t) { t.classList.remove("active"); });
+        thumb.classList.add("active");
+      });
+      strip.appendChild(thumb);
+    });
+    topEl.appendChild(strip);
+  }
+
   // ---- 雙語動態內容輔助函式：把中/英文字包成 i18n-zh / i18n-en 兩個 span，交給既有的
   // body.lang-en CSS 規則決定顯示哪一個；英文留空時自動 fallback 顯示中文。 ----
   function i18nHtml(zh, en) {
@@ -5554,6 +5612,9 @@ document.addEventListener('keydown', function(e) {
         if (modalImg) modalImg.src = row.image_url;
       }
 
+      // 更多照片（選填）：只有點進詳情彈窗才看得到縮圖列，卡片正面維持只有一張主圖
+      applyGalleryPhotos(modalId, row.image_url, photosByKey[photoKey(row.table, row.id)]);
+
       // 改詳情文字：說明 + 特色列表（留空則保留原本靜態內容）
       if (row.description || row.features_text) {
         var body = document.querySelector("#" + modalId + " .modal-body");
@@ -5591,6 +5652,22 @@ document.addEventListener('keydown', function(e) {
       if (plansRes.error) throw plansRes.error;
       var courses = coursesRes.data || [];
       var plans = plansRes.data || [];
+      courses.forEach(function (c) { c.table = "courses"; });
+      plans.forEach(function (p) { p.table = "membership_plans"; });
+
+      // 「更多照片」：資料表不存在（還沒執行 SQL）時安靜略過，不影響其他功能
+      try {
+        var photosRes = await sbClient.from("course_photos").select("item_type,item_id,image_url,sort_order").order("sort_order");
+        if (!photosRes.error) {
+          photosByKey = {};
+          (photosRes.data || []).forEach(function (p) {
+            var key = photoKey(p.item_type, p.item_id);
+            if (!photosByKey[key]) photosByKey[key] = [];
+            photosByKey[key].push(p);
+          });
+        }
+      } catch (photoErr) { /* course_photos 資料表尚未建立，略過即可 */ }
+
       applyPriceBadges(courses, plans);
       populateCourseSelect(courses, plans);
       applyCourseDetails(courses, plans, true);
@@ -5747,23 +5824,13 @@ document.addEventListener('keydown', function(e) {
         imgWrap.appendChild(overlayEl);
         cardEl.appendChild(imgWrap);
 
-        var captionEl = document.createElement("div");
-        captionEl.className = "pci-extra-caption";
-        var nameEl = document.createElement("div");
-        nameEl.className = "pci-extra-name";
-        nameEl.innerHTML = i18nHtml(row.name || "", row.name_en);
-        captionEl.appendChild(nameEl);
+        // 卡片正面只放主圖，名稱與價格留到點「詳情」之後的彈窗才顯示（下面 modalSub 會用到）
         var priceText = item.isPlan
           ? (row.price && row.price > 0 ? ("$" + row.price + " / 月") : "洽詢")
           : (row.price_note || (row.price ? ("$" + row.price) : "洽詢"));
         var priceTextEn = item.isPlan
           ? (row.price && row.price > 0 ? ("$" + row.price + " / month") : "Contact us")
           : (row.price_note_en || (row.price_note ? priceText : (row.price ? ("$" + row.price) : "Contact us")));
-        var priceEl = document.createElement("div");
-        priceEl.className = "pci-extra-price";
-        priceEl.innerHTML = i18nHtml(priceText, priceTextEn);
-        captionEl.appendChild(priceEl);
-        cardEl.appendChild(captionEl);
 
         var actionEl = document.createElement("div");
         actionEl.className = "pci-action";
@@ -5855,6 +5922,9 @@ document.addEventListener('keydown', function(e) {
 
         modalOverlay.appendChild(modalBox);
         document.body.appendChild(modalOverlay);
+
+        // 更多照片（選填）：只有點進詳情彈窗才看得到縮圖列，卡片正面維持只有一張主圖
+        applyGalleryPhotos(modalId, row.image_url, photosByKey[photoKey(row.table, row.id)]);
 
         // 比照原本靜態彈窗的「點背景關閉」行為
         modalOverlay.addEventListener("click", function (e) { if (e.target === modalOverlay) window.closeModal(modalId); });
