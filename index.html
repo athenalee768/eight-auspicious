@@ -3060,13 +3060,20 @@ p, li { font-size: 26px !important; }
 @media(max-width:640px){#draw-one-banner .d1-box{padding:22px 20px;text-align:center}#draw-one-banner .d1-t{text-align:center}}
 
 /* 抽一張浮動入口 */
-#draw-one-float{position:fixed;left:20px;bottom:20px;z-index:900;display:flex;align-items:center;gap:8px;padding:11px 20px 11px 16px;border-radius:999px;background:rgba(11,31,58,.92);border:1px solid var(--gold);color:var(--gold-l);font-family:'Noto Serif TC',serif;font-size:16px;letter-spacing:2px;text-decoration:none;box-shadow:0 4px 20px rgba(0,0,0,.35),0 0 18px var(--glow);transition:opacity .4s,transform .4s,background .3s,color .3s;animation:d1pulse 3.2s ease-in-out infinite}
-#draw-one-float:hover{background:var(--gold);color:var(--navy)}
-#draw-one-float svg{width:20px;height:20px;flex:none}
-#draw-one-float.d1-hide{opacity:0;pointer-events:none;transform:translateY(12px)}
-@keyframes d1pulse{0%,100%{box-shadow:0 4px 20px rgba(0,0,0,.35),0 0 10px var(--glow)}50%{box-shadow:0 4px 20px rgba(0,0,0,.35),0 0 26px rgba(201,168,76,.55)}}
-@media(max-width:640px){#draw-one-float{left:14px;bottom:16px;padding:10px 16px 10px 13px;font-size:15px}}
-@media(prefers-reduced-motion:reduce){#draw-one-float{animation:none}}
+#draw-one-float{position:fixed;left:24px;bottom:24px;z-index:900;display:flex;align-items:center;gap:14px;padding:10px 26px 10px 10px;border-radius:999px;text-decoration:none;color:var(--gold-p);font-family:'Noto Serif TC',serif;background:linear-gradient(135deg,rgba(18,44,82,.96),rgba(8,24,48,.96));border:1px solid rgba(232,203,122,.75);box-shadow:0 8px 28px rgba(0,0,0,.45),0 0 0 4px rgba(201,168,76,.10),0 0 28px var(--glow);backdrop-filter:blur(8px);overflow:hidden;transition:opacity .4s,transform .4s,box-shadow .4s;animation:d1pulse 3.6s ease-in-out infinite}
+#draw-one-float::before{content:"";position:absolute;top:0;bottom:0;width:60px;left:-90px;background:linear-gradient(100deg,transparent,rgba(245,230,184,.28),transparent);transform:skewX(-20deg);animation:d1shine 5s ease-in-out infinite}
+#draw-one-float:hover{transform:translateY(-3px);box-shadow:0 12px 34px rgba(0,0,0,.5),0 0 0 4px rgba(201,168,76,.18),0 0 38px rgba(201,168,76,.5)}
+#draw-one-float .d1f-ic{position:relative;flex:none;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#F5E6B8,#C9A84C 60%,#8B6914);color:#0B1F3A;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+#draw-one-float .d1f-ic svg{width:26px;height:26px}
+#draw-one-float .d1f-tx{display:flex;flex-direction:column;line-height:1.25;text-align:left}
+#draw-one-float .d1f-k{font-size:11px;letter-spacing:4px;color:var(--gold);font-family:'Cormorant Garamond',serif}
+#draw-one-float .d1f-t{font-size:21px;letter-spacing:5px;font-weight:600;color:var(--gold-p)}
+#draw-one-float .d1f-s{font-size:12px;letter-spacing:2px;color:rgba(250,246,238,.72)}
+#draw-one-float.d1-hide{opacity:0;pointer-events:none;transform:translateY(14px)}
+@keyframes d1pulse{0%,100%{box-shadow:0 8px 28px rgba(0,0,0,.45),0 0 0 4px rgba(201,168,76,.10),0 0 16px var(--glow)}50%{box-shadow:0 8px 28px rgba(0,0,0,.45),0 0 0 7px rgba(201,168,76,.14),0 0 34px rgba(201,168,76,.5)}}
+@keyframes d1shine{0%,60%{left:-90px}100%{left:130%}}
+@media(max-width:640px){#draw-one-float{left:14px;bottom:16px;gap:11px;padding:8px 20px 8px 8px}#draw-one-float .d1f-ic{width:44px;height:44px}#draw-one-float .d1f-t{font-size:19px;letter-spacing:4px}#draw-one-float .d1f-s{font-size:11px}}
+@media(prefers-reduced-motion:reduce){#draw-one-float,#draw-one-float::before{animation:none}}
 </style>
 
 <style>
@@ -6521,7 +6528,7 @@ document.addEventListener('keydown', function(e) {
 })();
 </script>
 
-<a id="draw-one-float" href="https://athenalee768.github.io/in-shivas-eyes/" target="_blank" rel="noopener" aria-label="線上抽一張牌"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M12 8l1.2 2.8L16 12l-2.8 1.2L12 16l-1.2-2.8L8 12l2.8-1.2z" fill="currentColor" stroke="none"/></svg><span class="i18n-zh">抽一張</span><span class="i18n-en">Draw One</span></a>
+<a id="draw-one-float" href="https://athenalee768.github.io/in-shivas-eyes/" target="_blank" rel="noopener" aria-label="線上抽一張牌"><span class="d1f-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="5.5" y="2.5" width="13" height="19" rx="2"/><rect x="8" y="5" width="8" height="14" rx="1" stroke-width=".8"/><path d="M12 8.2l1.1 2.7 2.7 1.1-2.7 1.1L12 15.8l-1.1-2.7L8.2 12l2.7-1.1z" fill="currentColor" stroke="none"/></svg></span><span class="d1f-tx"><span class="d1f-k">DRAW ONE</span><span class="d1f-t"><span class="i18n-zh">抽一張</span><span class="i18n-en">Draw a Card</span></span><span class="d1f-s"><span class="i18n-zh">聽見今天的提醒</span><span class="i18n-en">Hear today's message</span></span></span></a>
 <script>
 (function(){try{var f=document.getElementById('draw-one-float'),b=document.getElementById('draw-one-banner');if(f&&b&&'IntersectionObserver' in window){new IntersectionObserver(function(e){f.classList.toggle('d1-hide',e[0].isIntersecting)},{threshold:.2}).observe(b)}}catch(e){}})();
 </script>
